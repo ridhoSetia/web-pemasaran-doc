@@ -1,0 +1,14 @@
+{% extends 'store/web/base_web.html' %}
+{% block content %}
+<div class="text-center py-20">
+    <span class="material-symbols-outlined text-[80px] text-primary mb-4">check_circle</span>
+    <h1 class="text-3xl font-bold text-on-surface mb-2">Pesanan Berhasil!</h1>
+    <p class="text-on-surface-variant mb-6">Order ID Anda: <span class="font-bold">{{ order_id }}</span></p>
+    <a href="{% url 'store:market' %}" class="bg-primary text-white px-6 py-2 rounded-full font-bold hover:bg-primary-container">Kembali Belanja</a>
+</div>
+
+<script>
+    // Kosongkan keranjang di browser karena transaksi telah sukses masuk ke database backend
+    localStorage.removeItem('doc_cart');
+</script>
+{% endblock %}

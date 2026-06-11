@@ -1,0 +1,112 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="font-h2 text-h2 text-on-surface mb-8">Selesaikan Pesanan Anda</h1>
+
+    <form action="{% url 'store:checkout' %}" method="POST" enctype="multipart/form-data" id="checkoutForm" class="space-y-8">
+      {% csrf_token %}
+      <input type="hidden" name="cart_data" id="cart_data_input" />
+
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+        <h2 class="font-bold text-lg border-b pb-2">Informasi Kontak</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold mb-1">Nama Lengkap</label>
+            <input type="text" name="nama" required class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1">Nomor WhatsApp Aktif</label>
+            <input type="tel" name="hp" required class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary" />
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+        <h2 class="font-bold text-lg border-b pb-2">Opsi Pengiriman</h2>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="pengiriman" value="AMB" checked onchange="togglePengiriman()" class="text-primary focus:ring-primary" />
+            <span>Ambil di Peternakan</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="pengiriman" value="ANT" onchange="togglePengiriman()" class="text-primary focus:ring-primary" />
+            <span>Diantar ke Lokasi (Gunakan Peta)</span>
+          </label>
+        </div>
+
+        <div id="mapContainer" class="hidden space-y-4 pt-4 border-t">
+          <p class="text-sm text-on-surface-variant font-medium">Cari alamat Anda atau tandai langsung pada peta di bawah (Otomatis menggambar rute).</p>
+
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+              <input type="text" id="searchAlamat" placeholder="Ketik nama jalan, kecamatan, atau kota..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" />
+            </div>
+            <button type="button" onclick="cariLokasi()" class="bg-surface-variant text-on-surface-variant px-6 py-2.5 rounded-lg font-bold hover:bg-outline-variant transition-colors text-sm shadow-sm">Cari</button>
+          </div>
+
+          <div id="map" class="h-80 w-full rounded-xl border border-outline-variant z-10 shadow-inner"></div>
+
+          <input type="hidden" name="lat" id="latInput" />
+          <input type="hidden" name="lng" id="lngInput" />
+          <input type="hidden" name="jarak_km" id="jarakInput" />
+          <div id="infoJarak" class="hidden text-sm font-bold text-primary bg-primary/10 p-3 rounded-lg flex items-center gap-2 mt-2"></div>
+
+          <div>
+            <label class="block text-sm font-bold mb-1">Detail Alamat Lengkap (Patokan)</label>
+            <textarea name="alamat" id="alamatInput" rows="3" placeholder="Contoh: Rumah cat hijau, pagar hitam, depan masjid..." class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none p-3 text-sm transition-all"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+        <h2 class="font-bold text-lg border-b pb-2">Pembayaran</h2>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="pembayaran" value="COD" checked onchange="togglePembayaran()" class="text-primary focus:ring-primary" />
+            <span>Bayar di Tempat (COD)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="pembayaran" value="TF" onchange="togglePembayaran()" class="text-primary focus:ring-primary" />
+            <span>Transfer Bank</span>
+          </label>
+        </div>
+
+        <div id="transferContainer" class="hidden space-y-4 pt-4 border-t">
+          <div class="bg-primary/10 p-4 rounded-lg text-sm text-primary font-medium">
+            Silakan transfer ke rekening: <strong>BCA 123456789 a.n. Peternakan Mandiri</strong>
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1">Unggah Bukti Transfer</label>
+            <input type="file" name="bukti_pembayaran" id="buktiInput" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+          </div>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
+        <h2 class="font-bold text-lg border-b pb-2">Ringkasan Pembayaran</h2>
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-on-surface-variant">Subtotal Produk:</span>
+          <span id="subtotalDisplay" class="font-bold text-on-surface">Rp0</span>
+        </div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-on-surface-variant">Ongkos Kirim (Rp5.000/km):</span>
+          <span id="ongkirDisplay" class="font-bold text-on-surface">Rp0</span>
+        </div>
+        <div class="flex justify-between items-center text-lg border-t pt-4">
+          <span class="font-bold text-on-surface">Total Keseluruhan:</span>
+          <span id="grandTotalDisplay" class="font-bold text-primary text-xl">Rp0</span>
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-container transition-all">PROSES PESANAN SEKARANG</button>
+    </form>
+  </div>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+{% load static %}
+<script src="{% static 'js/checkout.js' %}"></script>
+{% endblock %}

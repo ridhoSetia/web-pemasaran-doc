@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+      {% block title %}
+        DOC Mart | Peternakan Ayam KUB
+      {% endblock %}
+    </title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'on-primary-container': '#9dd090',
+              'surface-container-low': '#f3f5e1',
+              'on-primary-fixed-variant': '#23501e',
+              'secondary-fixed-dim': '#e7bdb1',
+              'surface-dim': '#d9dcc8',
+              'primary-fixed': '#bcf0ae',
+              'on-error': '#ffffff',
+              'on-secondary': '#ffffff',
+              tertiary: '#2e3e20',
+              'on-tertiary-fixed': '#111f05',
+              'surface-variant': '#e2e4d1',
+              'primary-fixed-dim': '#a1d494',
+              'surface-container-high': '#e8ead6',
+              surface: '#f9fbe7',
+              'on-tertiary': '#ffffff',
+              'on-background': '#1a1d11',
+              'tertiary-fixed': '#d6e9be',
+              'inverse-on-surface': '#f0f2df',
+              'on-primary': '#ffffff',
+              'inverse-primary': '#a1d494',
+              'surface-container-lowest': '#ffffff',
+              'on-surface': '#1a1d11',
+              'surface-container-highest': '#e2e4d1',
+              'tertiary-fixed-dim': '#bacda4',
+              'on-tertiary-fixed-variant': '#3c4c2c',
+              'secondary-container': '#fed3c7',
+              primary: '#154212',
+              'surface-tint': '#3b6934',
+              error: '#ba1a1a',
+              'secondary-fixed': '#ffdbd0',
+              'surface-bright': '#f9fbe7',
+              'on-secondary-container': '#795950',
+              'primary-container': '#2d5a27',
+              'on-surface-variant': '#42493e',
+              'tertiary-container': '#455535',
+              secondary: '#77574d',
+              'error-container': '#ffdad6',
+              'on-secondary-fixed': '#2c160e',
+              'outline-variant': '#c2c9bb',
+              'on-tertiary-container': '#b6c9a0',
+              'surface-container': '#edf0dc',
+              outline: '#72796e',
+              'on-secondary-fixed-variant': '#5d4037',
+              'on-error-container': '#93000a',
+              'on-primary-fixed': '#002201',
+              'inverse-surface': '#2f3225',
+              background: '#f9fbe7'
+            },
+            borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' },
+            spacing: { xl: '40px', gutter: '20px', unit: '4px', md: '16px', sm: '8px', xs: '4px', 'container-margin': '32px', lg: '24px', 'container-max': '1280px', xxl: '48px' },
+            fontFamily: {
+              'label-sm': ['Open Sans', 'sans-serif'],
+              h3: ['Open Sans', 'sans-serif'],
+              h1: ['Open Sans', 'sans-serif'],
+              h2: ['Open Sans', 'sans-serif'],
+              'body-lg': ['Open Sans', 'sans-serif'],
+              'body-md': ['Open Sans', 'sans-serif']
+            },
+            fontSize: {
+              h1: ['36px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }], // Turun dari 48px
+              h2: ['28px', { lineHeight: '1.3', fontWeight: '600' }], // Turun dari 36px
+              h3: ['20px', { lineHeight: '1.4', fontWeight: '600' }], // Turun dari 24px
+              'body-lg': ['15px', { lineHeight: '1.6', fontWeight: '400' }], // Turun dari 18px
+              'body-md': ['14px', { lineHeight: '1.5', fontWeight: '400' }], // Turun dari 16px
+              'label-sm': ['12px', { lineHeight: '1.2', letterSpacing: '0.05em', fontWeight: '600' }], // Turun dari 14px
+              caption: ['11px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '300' }] // Turun dari 12px
+            }
+          }
+        }
+      }
+    </script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base_web.css' %}">
+  </head>
+  <body class="bg-background font-body-md text-on-background flex flex-col min-h-screen">
+    <!-- Header Semantik -->
+    <header class="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm" aria-label="Navigasi Utama">
+      <div class="flex justify-between items-center h-20 px-lg max-w-container-max mx-auto">
+        <!-- Logo -->
+        <a href="{% url 'store:index' %}" class="font-h3 text-h3 font-black tracking-tight text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="Beranda DOC Mart">DOC Mart</a>
+
+        <!-- Main Navigation -->
+        <nav class="hidden md:flex items-center gap-xl text-body-md" aria-label="Menu Utama">
+          {% load active_link_tags %}
+          <a class="{% active_link 'store:index' 'text-primary font-bold border-b-2 border-primary pb-1' 'text-on-surface-variant hover:text-primary transition-colors' strict=True %}" href="{% url 'store:index' %}">Beranda</a>
+          <a class="{% active_link 'store:market' 'text-primary font-bold border-b-2 border-primary pb-1' 'text-on-surface-variant hover:text-primary transition-colors' strict=True %}" href="{% url 'store:market' %}">Katalog Produk</a>
+          <a class="{% active_link 'store:track_order' 'text-primary font-bold border-b-2 border-primary pb-1' 'text-on-surface-variant hover:text-primary transition-colors' strict=True %}" href="{% url 'store:track_order' %}">Cek Pesanan</a>
+        </nav>
+
+        <!-- Action Area -->
+        <div class="flex items-center gap-lg">
+          <!-- Icon Buttons -->
+          <div class="flex items-center gap-md">
+            <button type="button" aria-label="Cari Produk" class="lg:hidden cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined" aria-hidden="true">search</span></button>
+            <a href="{% url 'store:cart' %}" aria-label="Keranjang Belanja" class="cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary">
+              <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
+              <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-background hidden">0</span>
+            </a>
+            <a href="{% url 'store:login' %}" aria-label="Profil Pengguna" class="cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined" aria-hidden="true">person</span></a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Area Konten Dinamis -->
+    <div class="flex-grow">
+      {% block content %}
+
+      {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container py-xl mt-xl border-t border-outline-variant/30">
+      <div class="max-w-container-max mx-auto px-lg text-center">
+        <p class="text-on-surface-variant font-medium">&copy; 2026 DOC Mart. Mitra Terpercaya Peternak Ayam KUB.</p>
+      </div>
+    </footer>
+
+    <script>
+      // Fungsi Global untuk memperbarui angka di icon keranjang
+      function updateCartBadge() {
+        let cart = JSON.parse(localStorage.getItem('doc_cart')) || []
+        let totalItems = 0
+        cart.forEach((item) => {
+          totalItems += item.qty
+        })
+      
+        const badge = document.getElementById('cart-badge')
+        if (totalItems > 0) {
+          badge.innerText = totalItems > 99 ? '99+' : totalItems
+          badge.classList.remove('hidden')
+        } else {
+          badge.classList.add('hidden')
+        }
+      }
+      
+      // Panggil saat halaman pertama kali dimuat
+      document.addEventListener('DOMContentLoaded', updateCartBadge)
+    </script>
+
+    {% if messages %}
+      <div id="toast-container" class="fixed top-24 right-6 z-[9999] flex flex-col gap-3">
+        {% for message in messages %}
+          <div class="toast-message flex items-center gap-3 p-4 rounded-xl shadow-2xl w-80 transform transition-all duration-500 translate-x-0 opacity-100
+                {% if message.tags == 'error' %}
+              
+              
+              bg-error text-white
+
+
+            {% else %}
+              
+              
+              bg-primary text-white
+
+
+            {% endif %}">
+            <span class="material-symbols-outlined text-[24px]">
+              {% if message.tags == 'error' %}
+                error
+              {% else %}
+                check_circle
+              {% endif %}
+            </span>
+            <p class="text-sm font-bold flex-1 leading-snug">{{ message }}</p>
+          </div>
+        {% endfor %}
+      </div>
+      {% load static %}
+      <script src="{% static 'js/base_web.js' %}"></script>
+    {% endif %}
+  </body>
+</html>

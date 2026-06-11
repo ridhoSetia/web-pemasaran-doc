@@ -1,0 +1,133 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block title %}
+  DOC Mart | Katalog Produk Ternak
+{% endblock %}
+
+{% block content %}
+  <main class="pt-8 max-w-container-max mx-auto px-lg">
+    <div class="flex flex-col md:flex-row gap-2 mb-xl relative">
+      
+      <aside class="w-full md:w-64 flex-shrink-0" aria-label="Filter Produk">
+        
+        <button 
+          type="button" 
+          onclick="openFilter()" 
+          class="md:hidden w-full bg-surface-container-low border border-outline-variant text-on-surface font-bold py-3 px-4 rounded-xl mb-4 flex items-center justify-between hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+            <span class="flex items-center gap-2">
+              <span class="material-symbols-outlined" aria-hidden="true">filter_list</span> 
+              Tampilkan Filter
+            </span>
+            <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+        </button>
+
+        <form id="filter-menu" method="GET" action="{% url 'store:market' %}" 
+              class="hidden fixed inset-0 z-50 bg-surface w-full h-full p-6 flex flex-col overflow-y-auto 
+                     md:block md:static md:w-full md:h-auto md:bg-surface-container-lowest md:p-lg md:rounded-xl md:border md:border-outline-variant md:sticky md:top-24 md:shadow-sm md:z-auto">
+          
+          <div class="flex items-center justify-between mb-lg border-b border-outline-variant/30 pb-4 md:pb-2">
+            <h2 class="font-h3 text-h2 md:text-h3 text-on-surface">Filter</h2>
+            
+            <button type="button" onclick="closeFilter()" aria-label="Tutup Filter" class="md:hidden p-2 bg-surface-container rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-center">
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+
+            <a href="{% url 'store:market' %}" class="hidden md:block text-primary text-label-sm font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded px-1">Reset</a>
+          </div>
+
+          <fieldset class="mb-lg flex-1 md:flex-none">
+            <legend class="font-bold text-body-md mb-md text-on-surface">Kategori Hasil Ternak</legend>
+            <div class="flex flex-col gap-sm md:gap-2">
+              
+              {% for kategori in categories %}
+                <label for="cat-{{ forloop.counter }}" class="flex items-center gap-sm cursor-pointer group w-fit py-1 md:py-0">
+                  <input id="cat-{{ forloop.counter }}" 
+                         class="rounded text-primary focus:ring-primary-container border-outline-variant bg-surface w-5 h-5 cursor-pointer md:w-4 md:h-4" 
+                         type="checkbox" 
+                         name="cat" 
+                         value="{{ kategori }}"
+                         {% if kategori in selected_cats %}checked{% endif %} />
+                         <span class="text-body-md group-hover:text-primary transition-colors">{{ kategori }}</span>
+                </label>
+              {% endfor %}
+              
+            </div>
+          </fieldset>
+          
+          <div class="mt-auto md:mt-0 pt-6 md:pt-0 pb-4 md:pb-0">
+            <button type="submit" class="w-full bg-primary text-white text-label-sm font-bold hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-primary rounded-lg py-3.5 md:py-2.5 mb-3 md:mb-0 transition-colors shadow-sm">Terapkan Filter</button>
+            
+            <a href="{% url 'store:market' %}" class="md:hidden flex items-center justify-center w-full bg-surface text-primary border border-primary text-label-sm font-bold hover:bg-primary-container/10 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg py-3 transition-colors">Reset Semua</a>
+          </div>
+        </form>
+      </aside>
+
+      <section class="flex-1 min-w-0" aria-label="Daftar Produk">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-lg">
+          <p class="text-body-md text-on-surface-variant">
+            Menampilkan <span class="font-bold text-on-surface">{{ products|length }}</span> produk unggulan
+          </p>
+        </header>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-sm">
+          {% load static %}
+          {% for product in products %}
+            <article class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition-all duration-100">
+              <figure class="relative aspect-square overflow-hidden bg-surface-variant">
+                {% load static %}
+                {% if product.gambar %}
+                  <img alt="Foto {{ product.nama }}" class="w-full h-full object-cover" src="{{ product.gambar.url }}" />
+                {% else %}
+                  <img alt="Foto Default" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{% static 'images/ayam-makan-2.webp' %}" />
+                {% endif %}
+                <div class="absolute bottom-md left-md">
+                  <span class="bg-primary text-white text-[11px] tracking-wider font-bold px-3 py-1 rounded-full shadow-sm">{{ product.kategori }}</span>
+                </div>
+              </figure>
+
+              <div class="p-md flex flex-col flex-1">
+                <h3 class="font-bold text-body-lg text-on-surface mb-xs line-clamp-2 leading-tight" title="{{ product.nama }}">{{ product.nama }}</h3>
+
+                <div class="mt-auto pt-4 flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <span class="font-h3 text-primary font-bold">Rp{{ product.harga|floatformat:'0g' }}</span>
+                    <span class="text-xs text-on-surface-variant mt-1">Stok: {{ product.stok }} unit</span>
+                  </div>
+                  <button type="button"
+                    data-id="{{ product.id }}"
+                    data-nama="{{ product.nama }}"
+                    data-harga="{{ product.harga|stringformat:'.0f' }}"
+                    data-stok="{{ product.stok }}"
+                    data-gambar="{% if product.gambar %}{{ product.gambar.url }}{% else %}{% static 'images/ayam-makan-2.webp' %}{% endif %}"
+                    onclick="addToCart(this)"
+                    aria-label="Tambah {{ product.nama }} ke keranjang"
+                    class="w-12 h-12 bg-primary-container text-white rounded-full flex items-center justify-center hover:bg-primary transition-all active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          {% empty %}
+            <div class="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 border-2 border-dashed border-outline-variant/50 rounded-2xl bg-surface-container-low">
+              <span class="material-symbols-outlined text-[64px] text-outline-variant mb-4" aria-hidden="true">inventory_2</span>
+              <h3 class="font-h3 text-xl text-on-surface mb-2">Katalog Sedang Kosong</h3>
+              <p class="text-body-md text-on-surface-variant max-w-md">Saat ini tidak ada produk yang tersedia. Silakan periksa kembali beberapa saat lagi atau hubungi admin.</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if products %}
+          <nav aria-label="Navigasi Halaman" class="mt-12 flex justify-center items-center gap-2">
+            <button type="button" aria-label="Halaman Sebelumnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-on-surface-variant" disabled><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></button>
+            <button type="button" aria-current="page" class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">1</button>
+            <button type="button" aria-label="Halaman 2" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">2</button>
+            <button type="button" aria-label="Halaman Selanjutnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button>
+          </nav>
+        {% endif %}
+      </section>
+    </div>
+  </main>
+
+  {% load static %}
+  <script src="{% static 'js/shop.js' %}"></script>
+{% endblock %}

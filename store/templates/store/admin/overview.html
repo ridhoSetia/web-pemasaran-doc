@@ -1,0 +1,126 @@
+{% extends 'store/admin/base.html' %} 
+
+{% block title %}DOC Mart - Ringkasan{% endblock %} 
+{% block header_title %}Ringkasan Dashboard{% endblock %} 
+
+{% block content %}
+  <section class="flex-1 overflow-y-auto p-8 custom-scrollbar" aria-label="Konten Ringkasan">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <div class="w-10 h-10 bg-primary-container/10 text-primary rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+          </div>
+        </div>
+        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Pendapatan</h3>
+        <p class="text-3xl font-bold text-on-surface">Rp{{ total_sales|floatformat:"0g" }}</p>
+      </article>
+
+      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <div class="w-10 h-10 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
+          </div>
+        </div>
+        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Pesanan</h3>
+        <p class="text-3xl font-bold text-on-surface">{{ total_orders }} <span class="text-sm font-medium text-on-surface-variant normal-case tracking-normal">Transaksi</span></p>
+      </article>
+
+      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <div class="w-10 h-10 bg-error/10 text-error rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined" aria-hidden="true">warning</span>
+          </div>
+          {% if low_stock_count > 0 %}
+          <span class="bg-error/10 text-error px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Kritis</span>
+          {% endif %}
+        </div>
+        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Stok Menipis</h3>
+        <p class="text-3xl font-bold text-on-surface">{{ low_stock_count }} <span class="text-sm font-medium text-on-surface-variant normal-case tracking-normal">Produk</span></p>
+      </article>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <section class="lg:col-span-2 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+          <h4 class="serif-heading text-lg font-bold text-on-surface">Performa Penjualan</h4>
+          <select class="bg-surface-container border border-outline-variant/50 rounded-lg text-sm text-on-surface-variant px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+            <option>6 Bulan Terakhir</option>
+            <option>Tahun Ini</option>
+          </select>
+        </div>
+        <div class="h-64 relative opacity-70" aria-hidden="true">
+          <svg class="w-full h-full" viewbox="0 0 800 240"><defs><lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#154212" stop-opacity="0.15"></stop><stop offset="100%" stop-color="#154212" stop-opacity="0"></stop></lineargradient></defs><line stroke="#e2e4d1" stroke-width="1" x1="0" x2="800" y1="40" y2="40"></line><line stroke="#e2e4d1" stroke-width="1" x1="0" x2="800" y1="100" y2="100"></line><line stroke="#e2e4d1" stroke-width="1" x1="0" x2="800" y1="160" y2="160"></line><line stroke="#e2e4d1" stroke-width="1" x1="0" x2="800" y1="220" y2="220"></line><path d="M0,220 L0,180 C100,160 150,200 250,140 C350,80 450,160 550,60 C650,-40 750,80 800,40 L800,220 Z" fill="url(#chartGradient)"></path><path d="M0,180 C100,160 150,200 250,140 C350,80 450,160 550,60 C650,-40 750,80 800,40" fill="none" stroke="#154212" stroke-linecap="round" stroke-width="3"></path><circle cx="250" cy="140" fill="#154212" r="4"></circle><circle cx="550" cy="60" fill="#154212" r="4"></circle></svg>
+          <div class="flex justify-between mt-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>Mei</span><span>Jun</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col">
+        <h4 class="serif-heading text-lg font-bold text-on-surface mb-6">Produk Terlaris</h4>
+        <div class="flex-1 flex flex-col gap-3">
+          {% for product in top_products %}
+            <article class="flex items-center gap-4 p-2 rounded-lg hover:bg-surface-container-high transition-colors group">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                 <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-on-surface truncate">{{ product.nama }}</p>
+                <p class="text-xs font-medium text-on-surface-variant">{{ product.total_sold }} terjual</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-bold text-primary">Rp{{ product.harga|floatformat:"0g" }}</p>
+              </div>
+            </article>
+          {% empty %}
+            <div class="text-center py-8 text-on-surface-variant text-sm font-medium">Belum ada data penjualan.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
+        <h4 class="serif-heading text-lg font-bold text-on-surface">Pesanan Terbaru</h4>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface-container-low border-b border-outline-variant/30">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">ID Pesanan</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Pelanggan</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total Harga</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tanggal</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/20">
+            {% for order in recent_orders %}
+              <tr class="hover:bg-surface-container-high/50 transition-colors">
+                <td class="px-6 py-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ order.order_id }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-on-surface">{{ order.nama_pembeli }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm font-bold text-primary whitespace-nowrap">Rp{{ order.total_harga|floatformat:"0g" }}</td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant whitespace-nowrap">{{ order.order_date|date:"d M Y, H:i" }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {% if order.status == 'PRO' %}bg-secondary/10 text-secondary{% elif order.status == 'SLS' %}bg-primary/10 text-primary{% else %}bg-error/10 text-error{% endif %}">{{ order.get_status_display }}</span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-10 text-on-surface-variant text-sm font-medium">Belum ada pesanan masuk.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex justify-center">
+        <a href="{% url 'store:orders' %}" class="text-sm font-bold text-primary hover:underline px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors">Lihat Semua Pesanan</a>
+      </div>
+    </section>
+  </section>
+{% endblock %}

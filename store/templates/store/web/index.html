@@ -1,0 +1,124 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+  <main>
+    <header class="relative min-h-[90vh] w-full overflow-hidden flex items-center" aria-label="Banner Utama">
+      {% load static %}
+      <img alt="Fasilitas kandang peternakan Ayam KUB dengan sistem modern" class="absolute inset-0 w-full h-full object-cover" src="{% static 'images/kandang-ayam.webp' %}" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#121410]/80 to-transparent"></div>
+      
+      <div class="relative w-full max-w-container-max mx-auto px-lg flex flex-col justify-center items-start">
+        <span class="bg-primary-fixed text-on-primary-fixed px-md py-xs rounded-full font-semibold text-caption mb-md shadow-sm">
+          DISTRIBUSI KELOMPOK TANI
+        </span>
+        <h1 class="font-h1 text-h1 text-white max-w-2xl mb-lg leading-tight">Penyedia DOC & Telur Fertil Ayam KUB Unggulan</h1>
+        <p class="text-white/90 text-body-lg max-w-lg mb-xl leading-relaxed">
+          Langsung dari peternak lokal tersertifikasi. Kami memastikan genetik unggul, tingkat daya tetas tinggi, dan jaminan kesehatan ternak Anda.
+        </p>
+        <a href="{% url 'store:market' %}" role="button" class="bg-primary text-white px-xl py-md rounded-full font-semibold hover:bg-primary-container hover:-translate-y-1 transition-all duration-300 shadow-lg text-center flex items-center gap-2">
+          Lihat Katalog Ternak
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+        </a>
+      </div>
+    </header>
+
+    <section class="py-xl bg-surface-container-low border-b border-outline-variant/20" aria-label="Keunggulan Kami">
+      <div class="max-w-container-max mx-auto px-lg grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-lg">
+        <article class="flex items-center gap-md">
+          <span class="material-symbols-outlined text-primary text-h3" aria-hidden="true">verified</span>
+          <div>
+            <h2 class="font-bold text-body-md text-on-surface">Genetik Unggul</h2>
+            <p class="text-caption text-on-surface-variant">Sertifikasi galur murni</p>
+          </div>
+        </article>
+        <article class="flex items-center gap-md">
+          <span class="material-symbols-outlined text-primary text-h3" aria-hidden="true">local_shipping</span>
+          <div>
+            <h2 class="font-bold text-body-md text-on-surface">Pengiriman Aman</h2>
+            <p class="text-caption text-on-surface-variant">Garansi hidup sampai tujuan</p>
+          </div>
+        </article>
+        <article class="flex items-center gap-md">
+          <span class="material-symbols-outlined text-primary text-h3" aria-hidden="true">vaccines</span>
+          <div>
+            <h2 class="font-bold text-body-md text-on-surface">Vaksinasi Lengkap</h2>
+            <p class="text-caption text-on-surface-variant">Bebas penyakit menular</p>
+          </div>
+        </article>
+        <article class="flex items-center gap-md">
+          <span class="material-symbols-outlined text-primary text-h3" aria-hidden="true">support_agent</span>
+          <div>
+            <h2 class="font-bold text-body-md text-on-surface">Pendampingan</h2>
+            <p class="text-caption text-on-surface-variant">Konsultasi budidaya gratis</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="py-xxl max-w-container-max mx-auto px-lg" aria-labelledby="kategori-heading">
+      <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-4">
+        <div>
+          <h2 id="kategori-heading" class="font-h2 text-h2 text-on-surface">Kategori Peternakan</h2>
+          <p class="text-on-surface-variant mt-2">Pilih bibit dan perlengkapan terbaik untuk kandang Anda</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
+        <a href="{% url 'store:market' %}?cat=DOC" class="group focus:outline-none focus:ring-2 focus:ring-primary rounded-xl" aria-label="Kategori DOC Ayam KUB">
+          <article class="aspect-square bg-surface-container rounded-xl overflow-hidden mb-md border border-outline-variant group-hover:shadow-lg transition-all duration-300 relative">
+            <img alt="Anak ayam KUB umur sehari (DOC)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{% static 'images/ayam-makan.webp' %}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4 flex items-center gap-2 text-white">
+              <span class="material-symbols-outlined" aria-hidden="true">cruelty_free</span>
+              <h3 class="font-bold text-body-lg">DOC Ayam KUB</h3>
+            </div>
+          </article>
+        </a>
+
+        <a href="{% url 'store:market' %}?cat=EGG" class="group focus:outline-none focus:ring-2 focus:ring-primary rounded-xl" aria-label="Kategori Telur Fertil">
+          <article class="aspect-square bg-surface-container rounded-xl overflow-hidden mb-md border border-outline-variant group-hover:shadow-lg transition-all duration-300 relative">
+            <img alt="Telur tetas fertil ayam KUB pilihan" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAob6mObp-q7OvAHsuZ6E0LYAXfWVkNV5k77QOmdKyBBtgQVihaW2qcWPPNZgaqLXdVk1SGHKU0r2-Yq9uPX4gau_sXn6O7CbzWs9ES9iEuXFTi2-RnkFQWytUeCt4xZUAEqlEItCBVN5vP6C50CjdfZNkMUsxay3GsXkRk4IA0mELOYmeu4cBUlzpsVtFKsN8lDDVL67WcHfG01O5mf-1Qrf7Sz43du2oTCmJRzhRH34UzdfcLXi2wSrpbqAgtbVkOK6Iiku4qBrY" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4 flex items-center gap-2 text-white">
+              <span class="material-symbols-outlined" aria-hidden="true">egg</span>
+              <h3 class="font-bold text-body-lg">Telur Fertil</h3>
+            </div>
+          </article>
+        </a>
+      </div>
+    </section>
+
+    <section class="py-xxl bg-primary-container" aria-labelledby="promo-heading">
+      <div class="max-w-container-max mx-auto px-lg">
+        <article class="flex flex-col lg:flex-row items-center gap-xl bg-surface-container-lowest rounded-2xl p-xl shadow-xl overflow-hidden border border-outline-variant">
+          <div class="w-full lg:w-1/2">
+            <span class="text-tertiary font-bold flex items-center gap-xs mb-md text-sm">
+              <span class="material-symbols-outlined" aria-hidden="true">handshake</span>
+              PROGRAM KEMITRAAN
+            </span>
+            <h2 id="promo-heading" class="font-h2 text-h2 text-on-surface mb-md">Paket Starter Ternak Pemula</h2>
+            <p class="text-on-surface-variant mb-xl leading-relaxed">
+              Solusi lengkap untuk Anda yang baru memulai. Termasuk 1 Box DOC Ayam KUB (100 ekor), pakan starter 50kg, vitamin, dan modul panduan budidaya intensif.
+            </p>
+            
+            <div class="flex items-center gap-lg mt-8">
+              <div class="flex flex-col">
+                <span class="text-on-surface-variant line-through text-body-sm">Rp 1.250.000</span>
+                <span class="text-primary font-h3 text-h3">Rp 999.000</span>
+              </div>
+              <button type="button" class="bg-primary text-white px-xl py-md rounded-full font-semibold shadow-md hover:bg-[#23501e] transition-all focus:ring-4 focus:ring-primary/30">
+                Pesan Paket Sekarang
+              </button>
+            </div>
+          </div>
+          <figure class="w-full lg:w-1/2 relative aspect-video rounded-xl overflow-hidden">
+            <img alt="Ilustrasi paket starter ternak berisi DOC dan pakan" class="w-full h-full object-cover" src="{% static 'images/kandang-ayam-dekat.webp' %}" />
+            <figcaption class="absolute top-md right-md bg-secondary text-on-secondary px-md py-xs rounded-full font-bold shadow-lg text-sm">
+              Hemat 20%
+            </figcaption>
+          </figure>
+        </article>
+      </div>
+    </section>
+  </main>
+{% endblock %}

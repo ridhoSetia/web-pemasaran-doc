@@ -1,0 +1,33 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-20 min-h-[60vh]">
+    <div class="text-center mb-8">
+        <span class="material-symbols-outlined text-[64px] text-primary mb-2">search_insights</span>
+        <h1 class="font-h2 text-h2 text-on-surface">Lacak Pesanan</h1>
+        <p class="text-on-surface-variant mt-2">Masukkan detail untuk melihat status dan faktur.</p>
+    </div>
+
+    <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant shadow-md">
+        <form method="POST" action="{% url 'store:track_order' %}" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-bold text-on-surface-variant mb-2">ID Pesanan (Order ID)</label>
+                <input type="text" name="order_id" required placeholder="Contoh: DOC-A1B2C3" 
+                       class="w-full rounded-xl border border-outline-variant px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary outline-none transition-all uppercase">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface-variant mb-2">Nomor WhatsApp</label>
+                <input type="tel" name="hp" required placeholder="Sesuai yang diisi saat checkout" 
+                       class="w-full rounded-xl border border-outline-variant px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary outline-none transition-all">
+            </div>
+
+            <button type="submit" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-container transition-colors shadow-md">
+                Lacak Sekarang
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

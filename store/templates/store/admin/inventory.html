@@ -1,0 +1,155 @@
+{% extends 'store/admin/base.html' %}
+
+{% block title %}
+  DOC Mart - Inventaris
+{% endblock %}
+{% block header_title %}
+  Manajemen Inventaris
+{% endblock %}
+
+{% block content %}
+  <div class="flex-1 overflow-y-auto p-8 pt-4 custom-scrollbar">
+    <div class="bg-surface-container-lowest border border-outline-variant/50 shadow-sm rounded-xl p-6 mb-8 flex flex-col md:flex-row justify-between md:items-end gap-6">
+      <form method="GET" action="{% url 'store:inventory' %}" class="flex items-end gap-4 flex-wrap flex-1">
+        <div class="space-y-1 w-full sm:w-64 flex-1">
+          <label for="inv-search" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Cari Produk</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+            <input type="search" id="inv-search" name="q" value="{{ current_q }}" placeholder="Ketik Nama atau SKU..." class="w-full bg-surface border border-outline-variant/50 rounded-lg pl-10 pr-4 py-2.5 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
+          </div>
+        </div>
+
+        <div class="space-y-1 w-full sm:w-40">
+          <label for="inv-kategori" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Kategori</label>
+          <select id="inv-kategori" name="kategori" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-4 py-2.5 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer transition-all">
+            {% if current_kategori == 'ALL' %}
+              <option value="ALL" selected>Semua</option>
+            {% else %}
+              <option value="ALL">Semua</option>
+            {% endif %}
+            {% for cat in category_choices %}
+              {% if current_kategori == cat %}
+                <option value="{{ cat }}" selected>{{ cat }}</option>
+              {% else %}
+                <option value="{{ cat }}">{{ cat }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-1 w-full sm:w-40">
+          <label for="inv-stok" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Level Stok</label>
+          <select id="inv-stok" name="stok" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-4 py-2.5 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer transition-all">
+            {% if current_stok == 'ALL' %}
+              <option value="ALL" selected>Semua</option>
+            {% else %}
+              <option value="ALL">Semua</option>
+            {% endif %}
+
+            {% if current_stok == 'SAFE' %}
+              <option value="SAFE" selected>Aman</option>
+            {% else %}
+              <option value="SAFE">Aman</option>
+            {% endif %}
+
+            {% if current_stok == 'LOW' %}
+              <option value="LOW" selected>Menipis</option>
+            {% else %}
+              <option value="LOW">Menipis</option>
+            {% endif %}
+          </select>
+        </div>
+
+        <button type="submit" class="w-full sm:w-auto px-6 bg-primary text-white text-sm font-bold py-2.5 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:outline-none"><span class="material-symbols-outlined text-[18px]">search</span> Cari</button>
+      </form>
+
+      <a href="{% url 'store:add_product' %}" class="w-full md:w-auto md:px-6 bg-primary text-white text-sm font-bold py-2.5 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:outline-none whitespace-nowrap"><span class="material-symbols-outlined text-[18px]">add</span> Tambah Produk Baru</a>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant/30 text-on-surface-variant">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Produk</th>
+            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Kode Unik</th>
+            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Harga Jual</th>
+            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Sisa Stok</th>
+            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/20">
+          {% for product in products %}
+            <tr class="hover:bg-surface-container-high/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center text-primary">
+                    {% load static %}
+                    {% if product.gambar %}
+                      <img alt="Foto {{ product.nama }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ product.gambar.url }}" />
+                    {% else %}
+                      <img alt="Foto Default" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{% static 'images/ayam-makan-2.webp' %}" />
+                    {% endif %}
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-on-surface">{{ product.nama }}</p>
+                    <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{{ product.kategori }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm font-mono font-medium text-on-surface">{{ product.kode_unik }}</td>
+              <td class="px-6 py-4 text-sm font-bold text-primary">Rp{{ product.harga|floatformat:'0g' }}</td>
+              <td class="px-6 py-4">
+                <span class="{% if product.stok < 10 %}
+                    
+                    
+                    
+                    
+                    
+                    px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error/10 text-error
+
+
+
+
+
+                  {% else %}
+                    
+                    
+                    
+                    
+                    
+                    text-sm font-medium text-on-surface
+
+
+
+
+
+                  {% endif %}">
+                  {{ product.stok }} unit
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex justify-end gap-2">
+                  <a href="{% url 'store:edit_product' product.id %}" title="Ubah Produk" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></a>
+
+                  <form action="{% url 'store:delete_product' product.id %}" method="POST" class="inline" onsubmit="return confirm('Peringatan: Menghapus produk ini juga akan menghapusnya dari riwayat keranjang. Lanjutkan?');">
+                    {% csrf_token %}
+                    <button type="submit" title="Hapus Produk" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-16 text-on-surface-variant text-sm font-medium">
+                <div class="flex flex-col items-center gap-3">
+                  <span class="material-symbols-outlined text-4xl opacity-50">inventory_2</span>
+                  Belum ada produk di dalam inventaris.
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

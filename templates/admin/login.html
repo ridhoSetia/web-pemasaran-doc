@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOC Mart | Admin Authorization</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; vertical-align: middle; }
+        body { font-family: 'Open Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#f9fbe7] text-[#1a1d11] min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-[#c2c9bb]/30">
+        <div class="bg-[#154212] p-8 text-center relative overflow-hidden">
+            <span class="material-symbols-outlined absolute -right-4 -top-4 text-[120px] text-white opacity-10 rotate-12">eco</span>
+            
+            <div class="relative z-10">
+                <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                    <span class="material-symbols-outlined text-white text-3xl">agriculture</span>
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">DOC Mart Portal</h1>
+                <p class="text-[#a1d494] text-sm mt-2">Secure access for farm administrators</p>
+            </div>
+        </div>
+
+        <div class="p-8">
+            
+            {% if form.errors and not form.non_field_errors %}
+                <div class="bg-[#ffdad6] text-[#93000a] p-3 rounded-lg text-sm mb-6 flex items-center gap-2 border border-[#93000a]/20">
+                    <span class="material-symbols-outlined text-[18px]">error</span>
+                    Username atau kata sandi tidak valid.
+                </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                <div class="bg-[#ffdad6] text-[#93000a] p-3 rounded-lg text-sm mb-6 flex items-center gap-2 border border-[#93000a]/20">
+                    <span class="material-symbols-outlined text-[18px]">warning</span>
+                    {{ error }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                <div class="bg-[#f3f5e1] text-[#42493e] p-3 rounded-lg text-sm mb-6 border border-[#c2c9bb]">
+                    Anda terotentikasi sebagai <strong>{{ user.username }}</strong>, tetapi tidak memiliki akses ke portal ini. Silakan login dengan akun Superuser.
+                </div>
+            {% endif %}
+
+            <form action="{{ app_path }}" method="post" id="login-form" class="space-y-5">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="id_username" class="block text-sm font-bold text-[#42493e] mb-1">Username</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#72796e] text-[18px]">person</span>
+                        <input type="text" name="username" id="id_username" required autofocus
+                            class="w-full pl-10 pr-4 py-2 bg-[#f9fbe7]/50 border border-[#c2c9bb] rounded-lg focus:ring-2 focus:ring-[#154212] focus:border-[#154212] transition-colors outline-none text-[#1a1d11]" placeholder="Enter your username">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="id_password" class="block text-sm font-bold text-[#42493e] mb-1">Password</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#72796e] text-[18px]">lock</span>
+                        <input type="password" name="password" id="id_password" required
+                            class="w-full pl-10 pr-4 py-2 bg-[#f9fbe7]/50 border border-[#c2c9bb] rounded-lg focus:ring-2 focus:ring-[#154212] focus:border-[#154212] transition-colors outline-none text-[#1a1d11]" placeholder="••••••••">
+                        
+                        <input type="hidden" name="next">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-[#154212] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#2d5a27] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
+                        Authorize Access
+                        <span class="material-symbols-outlined text-[18px]">login</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

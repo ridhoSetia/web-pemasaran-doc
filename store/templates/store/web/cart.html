@@ -1,0 +1,48 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-lg py-12 min-h-[60vh]">
+    <h1 class="font-h2 text-h2 text-on-surface mb-8">Keranjang Belanja</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex-1">
+            <div id="cart-items-container" class="space-y-4">
+                </div>
+            
+            <div id="empty-cart-message" class="hidden text-center py-16 bg-surface-container-lowest rounded-xl border border-outline-variant/50">
+                <span class="material-symbols-outlined text-[64px] text-outline-variant mb-4">shopping_cart</span>
+                <h2 class="text-xl font-bold text-on-surface mb-2">Keranjang Kosong</h2>
+                <p class="text-on-surface-variant mb-6">Anda belum memilih bibit atau produk peternakan apapun.</p>
+                <a href="{% url 'store:market' %}" class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary-container transition-colors inline-block">Mulai Belanja</a>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-96 shrink-0">
+            <div id="order-summary-card" class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm sticky top-24">
+                <h2 class="font-bold text-lg border-b border-outline-variant/50 pb-4 mb-4">Ringkasan Pesanan</h2>
+                
+                <div class="flex justify-between items-center mb-2 text-on-surface-variant">
+                    <span>Total Item</span>
+                    <span id="summary-items" class="font-bold text-on-surface">0</span>
+                </div>
+                
+                <div class="flex justify-between items-center mb-6 pt-4 border-t border-outline-variant/50">
+                    <span class="font-bold text-lg text-on-surface">Total Harga</span>
+                    <span id="summary-total" class="font-bold text-xl text-primary">Rp0</span>
+                </div>
+                
+                <a href="{% url 'store:checkout' %}" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2">
+                    Lanjutkan ke Pembayaran <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+                
+                <p class="text-xs text-on-surface-variant text-center mt-4 flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">lock</span> Transaksi aman tersertifikasi
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% load static %}
+<script src="{% static 'js/cart.js' %}"></script>
+{% endblock %}

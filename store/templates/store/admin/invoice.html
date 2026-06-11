@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faktur Pesanan - {{ order.order_id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/invoice.css' %}">
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto mb-6 flex justify-end gap-4 no-print">
+        {% if is_public %}
+            <a href="{% url 'store:market' %}" class="px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali Belanja
+            </a>
+        {% else %}
+            <button onclick="window.close()" class="px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">close</span> Tutup Tab
+            </button>
+        {% endif %}
+        
+        <button onclick="window.print()" class="px-6 py-2 bg-green-700 text-white rounded-lg font-bold hover:bg-green-800 transition shadow flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">print</span> Cetak Faktur
+        </button>
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-md print-shadow print-border relative overflow-hidden">
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-8 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-green-800 tracking-tight">DOC Mart</h1>
+                <p class="text-gray-500 text-sm mt-1">Sistem Peternakan & Distribusi Ayam Kualitas Unggul</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-left md:text-right">
+                <h2 class="text-2xl font-bold text-gray-800">FAKTUR (INVOICE)</h2>
+                <p class="text-gray-500 font-medium">#{{ order.order_id }}</p>
+                <div class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full 
+                    {% if order.status == 'PRO' %} bg-yellow-100 text-yellow-800
+                    {% elif order.status == 'SLS' %} bg-green-100 text-green-800
+                    {% else %} bg-red-100 text-red-800 {% endif %}">
+                    Status: {{ order.get_status_display }}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div>
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Diterbitkan Untuk:</h3>
+                <p class="text-lg font-bold text-gray-800">{{ order.nama_pembeli }}</p>
+                <p class="text-gray-600 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-[16px]">call</span> {{ order.nomor_hp }}
+                </p>
+                <p class="text-gray-600 flex items-start gap-1 mt-1">
+                    <span class="material-symbols-outlined text-[16px] mt-0.5">location_on</span> 
+                    <span class="max-w-[250px]">{{ order.alamat|default:"-" }}</span>
+                </p>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Detail Transaksi:</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Tanggal Order</span>
+                        <span class="font-semibold">{{ order.order_date|date:"d M Y, H:i" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Metode Pengiriman</span>
+                        <span class="font-semibold text-green-700">{{ order.get_metode_pengiriman_display }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Metode Pembayaran</span>
+                        <span class="font-semibold">{{ order.get_metode_pembayaran_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-y border-gray-200">
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Produk</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Harga Satuan</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Qty</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in order.orderitem_set.all %}
+                    {% widthratio item.kuantitas 1 item.harga_saat_beli as item_subtotal %}
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="py-4 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
+                        <td class="py-4 px-4 text-sm font-bold text-gray-800">{{ item.product.nama }}</td>
+                        <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp{{ item.harga_saat_beli|floatformat:"0g" }}</td>
+                        <td class="py-4 px-4 text-sm text-gray-600 text-center">{{ item.kuantitas }}</td>
+                        <td class="py-4 px-4 text-sm font-bold text-gray-800 text-right">Rp{{ item_subtotal|floatformat:"0g" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-end">
+            <div class="w-full md:w-1/2 lg:w-1/3 space-y-3">
+                
+                {% if order.metode_pengiriman == 'ANT' and order.jarak_km %}
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Ongkos Kirim ({{ order.jarak_km }} km)</span>
+                    <span class="font-medium">+ Rp{% widthratio order.jarak_km 1 5000 as ongkir %}{{ ongkir|floatformat:"0g" }}</span>
+                </div>
+                <hr class="border-gray-200">
+                {% endif %}
+
+                <div class="flex justify-between items-end">
+                    <span class="text-gray-800 font-bold text-lg">Total Keseluruhan</span>
+                    <span class="text-3xl font-extrabold text-green-700">Rp{{ order.total_harga|floatformat:"0g" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-500 text-center md:text-left">
+            <p class="font-bold text-gray-700 mb-1">Terima Kasih atas Kepercayaan Anda!</p>
+            <p>Harap simpan faktur ini sebagai bukti transaksi yang sah. Jika Anda memiliki pertanyaan mengenai pesanan ini, silakan hubungi admin kami melalui WhatsApp.</p>
+        </div>
+
+    </div>
+</body>
+</html>
