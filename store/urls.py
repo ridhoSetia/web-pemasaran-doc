@@ -32,6 +32,7 @@ urlpatterns = [
     path('admin/overview/', views.overview_dashboard, name='overview'),
     path('admin/inventory/', views.inventory_list, name='inventory'),
     path('admin/orders/', views.order_management, name='orders'),
+    path('admin/orders/export/', views.export_orders_excel, name='export_orders_excel'),
     
     # Rute Aksi Pesanan
     path('admin/orders/<int:order_id>/status/', views.update_order_status, name='update_order_status'),

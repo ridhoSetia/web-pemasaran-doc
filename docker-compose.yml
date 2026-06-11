@@ -16,7 +16,7 @@ services:
   web:
     build: .
     # Menggunakan port dinamis dari .env
-    command: python manage.py runserver 127.0.0.1:${DJANGO_PORT}
+    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
     volumes:
       - .:/app
     ports:

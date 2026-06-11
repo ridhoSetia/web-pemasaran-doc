@@ -116,12 +116,29 @@
           {% endfor %}
         </div>
 
-        {% if products %}
+{% if products.has_other_pages %}
           <nav aria-label="Navigasi Halaman" class="mt-12 flex justify-center items-center gap-2">
-            <button type="button" aria-label="Halaman Sebelumnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-on-surface-variant" disabled><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></button>
-            <button type="button" aria-current="page" class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">1</button>
-            <button type="button" aria-label="Halaman 2" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">2</button>
-            <button type="button" aria-label="Halaman Selanjutnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button>
+            
+            {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}&{{ query_string }}" aria-label="Halaman Sebelumnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface-variant"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a>
+            {% else %}
+                <button disabled class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant opacity-50 cursor-not-allowed text-on-surface-variant"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></button>
+            {% endif %}
+
+            {% for i in products.paginator.page_range %}
+                {% if products.number == i %}
+                    <button aria-current="page" class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">{{ i }}</button>
+                {% else %}
+                    <a href="?page={{ i }}&{{ query_string }}" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}&{{ query_string }}" aria-label="Halaman Selanjutnya" class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors text-on-surface-variant"><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></a>
+            {% else %}
+                <button disabled class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant opacity-50 cursor-not-allowed text-on-surface-variant"><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button>
+            {% endif %}
+            
           </nav>
         {% endif %}
       </section>

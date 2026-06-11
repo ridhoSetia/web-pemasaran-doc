@@ -6,10 +6,10 @@
   <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
     <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <p class="text-sm font-medium text-on-surface-variant">Kelola, lacak, dan perbarui status pesanan pelanggan.</p>
-      <button type="button" class="px-4 py-2 rounded-lg border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors flex items-center gap-2 focus:ring-2 focus:ring-primary focus:outline-none">
+      <a href="{% url 'store:export_orders_excel' %}" class="px-4 py-2 rounded-lg border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors flex items-center gap-2 focus:ring-2 focus:ring-primary focus:outline-none">
         <span class="material-symbols-outlined text-[18px]">file_download</span>
-        Ekspor CSV
-      </button>
+        Ekspor Excel
+      </a>
     </div>
 
     <form method="GET" action="{% url 'store:orders' %}" class="bg-surface-container-lowest rounded-xl p-6 mb-8 border border-outline-variant/50 shadow-sm">
@@ -131,6 +131,30 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if orders.has_other_pages %}
+    <div class="px-6 py-4 border-t flex items-center justify-between">
+        <span class="text-sm text-gray-500">
+            Menampilkan halaman {{ orders.number }} dari {{ orders.paginator.num_pages }}
+        </span>
+        <div class="flex gap-1">
+            {% if orders.has_previous %}
+                <a href="?page={{ orders.previous_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-sm font-medium">Prev</a>
+            {% endif %}
+            
+            {% for i in orders.paginator.page_range %}
+                {% if orders.number == i %}
+                    <button class="px-3 py-1 border rounded bg-green-800 text-white text-sm font-medium">{{ i }}</button>
+                {% else %}
+                    <a href="?page={{ i }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-gray-600 text-sm font-medium">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-sm font-medium">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
     </div>
   </div>
 {% endblock %}

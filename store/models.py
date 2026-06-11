@@ -3,6 +3,7 @@ from io import BytesIO
 from PIL import Image
 from django.db import models
 from django.core.files.base import ContentFile
+from django.utils.text import slugify
 
 class Product(models.Model):
     nama = models.CharField(max_length=255)
@@ -22,11 +23,10 @@ class Product(models.Model):
 
     # LOGIKA KEAMANAN & KONVERSI WEBP
     def save(self, *args, **kwargs):
-        # Jika ada gambar yang diunggah dan gambar tersebut belum berformat WebP
+        # Jika ada gambar baru yang diunggah dan belum berformat webp
         if self.gambar and getattr(self.gambar, 'name', None) and not self.gambar.name.lower().endswith('.webp'):
             img = Image.open(self.gambar)
             
-            # Jika gambar transparan, ubah ke mode RGB
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
             
@@ -34,14 +34,15 @@ class Product(models.Model):
             img.save(output, format='WEBP', quality=80)
             output.seek(0)
             
-            # Ambil nama dasar file (hindari duplikasi path)
-            base_name = os.path.basename(self.gambar.name)
-            filename = os.path.splitext(base_name)[0] + '.webp'
+            # Mengubah nama file menjadi sepadan dengan nama produk
+            # slugify akan mengubah "Ayam KUB Super!" menjadi "ayam-kub-super"
+            filename = f"{slugify(self.nama)}.webp"
             
-            # PERBAIKAN KRUSIAL: Gunakan self.gambar.save() agar upload_to tetap bekerja!
+            # self.gambar.save() agar upload_to tetap bekerja!
             self.gambar.save(filename, ContentFile(output.read()), save=False)
             
         super().save(*args, **kwargs)
+        
 
 class DeliveryMethod(models.TextChoices):
     AMBIL = 'AMB', 'Ambil Sendiri'
@@ -81,6 +82,25 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.order_id} - {self.nama_pembeli}"
 
+    def save(self, *args, **kwargs):
+        # Jika ada file bukti transfer yang diunggah dan belum berformat webp
+        if self.bukti_pembayaran and getattr(self.bukti_pembayaran, 'name', None) and not self.bukti_pembayaran.name.lower().endswith('.webp'):
+            img = Image.open(self.bukti_pembayaran)
+            
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            
+            output = BytesIO()
+            img.save(output, format='WEBP', quality=80)
+            output.seek(0)
+            
+            # Gunakan order_id sebagai nama file bukti transfer
+            filename = f"{self.order_id}.webp"
+            
+            self.bukti_pembayaran.save(filename, ContentFile(output.read()), save=False)
+            
+        super().save(*args, **kwargs)
+
 class OrderItem(models.Model):
     """
     Tabel perantara (Bridge Table) yang merelasikan Order dan Product.
@@ -98,8 +118,8 @@ class OrderItem(models.Model):
     # Berapa banyak produk ini dibeli dalam pesanan
     kuantitas = models.PositiveIntegerField()
     
-    # Mengapa kita menyimpan harga lagi di sini? 
-    # KEAMANAN DATA HISTORIS: Harga produk di master 'Product' bisa berubah besok. 
+    # Mengapa kita menyimpan harga lagi di sini
+    # Harga produk di master 'Product' bisa berubah besok. 
     # Faktur pesanan hari ini tidak boleh ikut berubah mengikuti harga besok.
     harga_saat_beli = models.DecimalField(max_digits=10, decimal_places=2)
 

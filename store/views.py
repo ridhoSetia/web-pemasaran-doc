@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 import requests
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 
 from django.shortcuts import render, redirect
@@ -15,6 +15,12 @@ from django.contrib import messages
 from django.db import IntegrityError, transaction
 
 from django.db.models import Q
+
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.worksheet.datavalidation import DataValidation
+
+from django.core.paginator import Paginator
 
 # Fungsi lambda ini akan memeriksa: "Apakah user ini adalah superuser?"
 # Jika True, View dijalankan. Jika False, user ditendang ke halaman login.
@@ -49,8 +55,18 @@ def inventory_list(request):
     elif stok == 'LOW':
         products = products.filter(stok__lt=10)
         
+    paginator = Paginator(products, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Ambil parameter URL saat ini (kecuali 'page') agar filter tidak hilang saat pindah halaman
+    query = request.GET.copy()
+    if 'page' in query:
+        del query['page']
+
     context = {
-        'products': products,
+        'products': page_obj,
+        'query_string': query.urlencode(), # Kirim sisa parameter ke template
         'category_choices': categories,
         'current_q': q,
         'current_kategori': kategori,
@@ -67,7 +83,7 @@ def overview_dashboard(request):
     
     # Agregasi Total Penjualan (Setara SQL: SELECT SUM(total_amount) FROM store_order)
     # aggregate() mengembalikan dictionary, misal: {'total_amount__sum': 4250.00}
-    sales_aggregation = Order.objects.aggregate(total_sales=Sum('total_harga'))
+    sales_aggregation = Order.objects.filter(status=OrderStatus.SELESAI).aggregate(total_sales=Sum('total_harga'))
     # Jika database kosong, Sum mengembalikan None, jadi kita set default ke 0
     total_sales = sales_aggregation['total_sales'] or 0
 
@@ -131,8 +147,17 @@ def order_management(request):
     if date_filter:
         orders = orders.filter(order_date__date=date_filter)
 
+    paginator = Paginator(orders, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    query = request.GET.copy()
+    if 'page' in query:
+        del query['page']
+
     context = {
-        'orders': orders,
+        'orders': page_obj,
+        'query_string': query.urlencode(),
         'current_status': status_filter,
         'status_choices': OrderStatus.choices,
         'current_q': q,
@@ -141,6 +166,162 @@ def order_management(request):
     return render(request, 'store/admin/orders.html', context)
 
 @admin_only
+def export_orders_excel(request):
+    """
+    Ekspor data pesanan ke file Excel (.xlsx) dengan styling profesional,
+    Dropdown Data Validation, dan Rumus SUMIF Dinamis untuk Pendapatan.
+    """
+    # 1. Inisialisasi Workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Laporan Pesanan"
+    
+    # Pastikan garis kisi (gridlines) bawaan Excel tetap terlihat
+    ws.views.sheetView[0].showGridLines = True
+    
+    # 2. Definisikan Palet Warna & Font (Tema Hijau DOC Mart)
+    HEADER_FILL = PatternFill(start_color="143D11", end_color="143D11", fill_type="solid")
+    CARD_FILL = PatternFill(start_color="F1F8E9", end_color="F1F8E9", fill_type="solid")
+    ZEBRA_FILL = PatternFill(start_color="F9FBE7", end_color="F9FBE7", fill_type="solid")
+    
+    FONT_TITLE = Font(name="Arial", size=15, bold=True, color="143D11")
+    FONT_HEADER = Font(name="Arial", size=10, bold=True, color="FFFFFF")
+    FONT_CARD_LABEL = Font(name="Arial", size=9, bold=False, color="555555")
+    FONT_CARD_VALUE = Font(name="Arial", size=13, bold=True, color="143D11")
+    FONT_BODY = Font(name="Arial", size=10)
+    
+    THIN_BORDER = Border(
+        left=Side(style='thin', color='DDDDDD'),
+        right=Side(style='thin', color='DDDDDD'),
+        top=Side(style='thin', color='DDDDDD'),
+        bottom=Side(style='thin', color='DDDDDD')
+    )
+    
+    # 3. Desain Header Judul Dokumen
+    ws['A1'] = "LAPORAN MANAJEMEN PESANAN - DOC MART"
+    ws['A1'].font = FONT_TITLE
+    
+    # 4. MEMBUAT KARTU RINGKASAN REVENUE (DENGAN RUMUS EXCEL DIGITAL)
+    ws.merge_cells('A3:C3')
+    ws.merge_cells('A4:C4')
+    ws['A3'] = "TOTAL PENDAPATAN REALISASI (STATUS: SELESAI)"
+    ws['A3'].font = FONT_CARD_LABEL
+    ws['A3'].fill = CARD_FILL
+    ws['A3'].alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Rumus SUMIF: Cari kata "Selesai" di Kolom I (Status), lalu jumlahkan nilai di Kolom J (Total Harga)
+    # Batas pencarian diatur dinamis hingga 500 baris pertama data pesanan
+    ws['A4'] = '=SUMIF(I6:I500, "Selesai", J6:J500)'
+    ws['A4'].font = FONT_CARD_VALUE
+    ws['A4'].fill = CARD_FILL
+    ws['A4'].number_format = '"Rp"#,##0' # Format Rupiah Akuntansi
+    ws['A4'].alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Beri bingkai border tipis pada kartu ringkasan pendapatan
+    for r in range(3, 5):
+        for c in range(1, 4):
+            ws.cell(row=r, column=c).border = THIN_BORDER
+
+    # 5. Susun Header Tabel Utama (Baris ke-5)
+    headers = [
+        "No", "Order ID", "Nama Pembeli", "No WhatsApp", 
+        "Pengiriman", "Alamat Detail", "Jarak (KM)", 
+        "Pembayaran", "Status", "Total Harga", "Tanggal Order"
+    ]
+    
+    header_row = 5
+    for col_num, header_title in enumerate(headers, 1):
+        cell = ws.cell(row=header_row, column=col_num)
+        cell.value = header_title
+        cell.font = FONT_HEADER
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = THIN_BORDER
+        
+    # 6. Ambil Data dari Database Django
+    orders = Order.objects.all().order_by('-order_date')
+    start_data_row = 6
+    
+    # KONFIGURASI DROPDOWN DATA VALIDATION UNTUK EXCEL
+    status_dv = DataValidation(type="list", formula1='"Proses,Selesai,Batal"', allow_blank=True)
+    ws.add_data_validation(status_dv)
+    
+    status_map = {
+        'PRO': 'Proses',
+        'SLS': 'Selesai',
+        'BTL': 'Batal'
+    }
+    
+    for idx, order in enumerate(orders, 1):
+        current_row = start_data_row + idx - 1
+        
+        # Format translasi data agar mudah dipahami di Excel
+        status_label = status_map.get(order.status, 'Proses')
+        metode_png = order.get_metode_pengiriman_display()
+        metode_pemb = order.get_metode_pembayaran_display()
+        tanggal_str = order.order_date.strftime('%d-%m-%Y %H:%M') if order.order_date else ''
+        
+        row_data = [
+            idx,
+            order.order_id,
+            order.nama_pembeli,
+            order.nomor_hp,
+            metode_png,
+            order.alamat or '-',
+            float(order.jarak_km) if order.jarak_km else 0,
+            metode_pemb,
+            status_label, # Ini akan masuk ke kolom I (Status)
+            float(order.total_harga), # Ini akan masuk ke kolom J (Total Harga)
+            tanggal_str
+        ]
+        
+        for col_num, val in enumerate(row_data, 1):
+            cell = ws.cell(row=current_row, column=col_num)
+            cell.value = val
+            cell.font = FONT_BODY
+            cell.border = THIN_BORDER
+            
+            # Pengaturan Penyelarasan Posisi (Alignment)
+            if col_num in [1, 2, 4, 7, 8, 9, 11]:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+            else:
+                cell.alignment = Alignment(horizontal="left", vertical="center")
+                
+            # Pemformatan Angka Spesifik
+            if col_num == 7: # Jarak KM
+                cell.number_format = '0.00'
+            elif col_num == 10: # Format Mata Uang Rupiah di Kolom J
+                cell.number_format = '"Rp"#,##0'
+                
+            # Efek Estetika Zebra Striping (Baris Genap Diberi Warna Berbeda)
+            if idx % 2 == 0:
+                cell.fill = ZEBRA_FILL
+        
+        # IKAT DROPDOWN KE KOLOM STATUS (Kolom 9 / Huruf I)
+        status_dv.add(ws.cell(row=current_row, column=9))
+        
+    # 7. Auto-fit Ukuran Lebar Kolom Secara Proporsional
+    for col in ws.columns:
+        max_len = 0
+        col_letter = col[0].column_letter
+        for cell in col:
+            if cell.row < 5: # Abaikan baris judul dan kartu atas dari kalkulasi lebar
+                continue
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 5, 12)
+        
+    # Set Tinggi Baris Spesifik agar Tampak Proporsional
+    ws.row_dimensions[5].height = 26 # Tinggi baris header tabel
+    
+    # 8. Set Judul File dan Return File Binary Excel ke Browser Admin
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = "attachment; filename=Laporan_Penjualan_DOC_Mart.xlsx"
+    wb.save(response)
+    return response
+
 @admin_only
 def add_product(request):
     existing_categories = Product.objects.values_list('kategori', flat=True).distinct()
@@ -264,10 +445,19 @@ def product_list(request):
     if selected_cats:
         products = products.filter(kategori__in=selected_cats)
         
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    query = request.GET.copy()
+    if 'page' in query:
+        del query['page']
+        
     context = {
-        'products': products,
-        'categories': categories,        # Kirim daftar kategori unik
-        'selected_cats': selected_cats,  # Kirim status kategori yang sedang dicentang
+        'products': page_obj,
+        'query_string': query.urlencode(),
+        'categories': categories,        
+        'selected_cats': selected_cats,  
     }
     
     return render(request, 'store/web/shop.html', context)
@@ -377,16 +567,13 @@ def checkout_process(request):
             pesan_pelanggan = (
                 f"Halo *{order.nama_pembeli}*,\n\n"
                 f"Terima kasih telah berbelanja di *DOC Mart*! 🐣\n"
-                f"Pesanan Anda dengan ID *{order.order_id}* telah kami terima.\n\n"
+                f"Pesanan Anda dengan ID *{order.order_id}* telah kami terima dan sedang kami proses.\n\n"
                 f"Total Tagihan: *Rp{order.total_harga:,.0f}*\n\n"
                 f"📄 *CEK STATUS & FAKTUR PESANAN ANDA DI SINI:*\n"
                 f"{link_faktur}\n\n"
             )
 
-            if pembayaran == 'TF':
-                pesan_pelanggan += "Mohon segera lakukan transfer ke BCA 123456789 a.n Peternakan Mandiri jika Anda belum mengunggah bukti transfer saat checkout.\n\n"
-
-            pesan_pelanggan += "Tim kami akan segera menghubungi Anda. Terima kasih! 🙏"
+            pesan_pelanggan += "Jika Anda merasa tidak memesan, tolong chat nomor ini untuk konfirmasi. Terima kasih! 🙏"
 
             # Eksekusi Pengiriman Pesan
             try:
