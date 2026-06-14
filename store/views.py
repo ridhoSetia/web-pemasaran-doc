@@ -12,6 +12,8 @@ from django.db import IntegrityError, transaction
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django_ratelimit.decorators import ratelimit
+from django.utils import timezone
+from datetime import timedelta, datetime
 
 from .models import Product, Order, OrderItem, OrderStatus
 from .tasks import convert_product_image_to_webp, convert_order_payment_proof_to_webp
@@ -79,43 +81,62 @@ def overview_dashboard(request):
     Fokus pada efisiensi ORM Query.
     """
     
-    # Agregasi Total Penjualan (Setara SQL: SELECT SUM(total_amount) FROM store_order)
-    # aggregate() mengembalikan dictionary, misal: {'total_amount__sum': 4250.00}
+    # Agregasi Total Penjualan & Pesanan
     sales_aggregation = Order.objects.filter(status=OrderStatus.SELESAI).aggregate(total_sales=Sum('total_harga'))
-    # Jika database kosong, Sum mengembalikan None, jadi kita set default ke 0
     total_sales = sales_aggregation['total_sales'] or 0
-
-    # Agregasi Total Pesanan (Setara SQL: SELECT COUNT(*) FROM store_order)
     total_orders = Order.objects.count()
-
-    # Menghitung produk yang stoknya menipis (misal di bawah 10 unit)
-    # Filter dieksekusi di level database, bukan di Python.
     low_stock_count = Product.objects.filter(stok__lt=10).count()
-
-    # Mengambil 4 pesanan terbaru
-    # Penggunaan slice [:4] pada ORM setara dengan klausa "LIMIT 4" di SQL.
-    # Ini memastikan kita tidak memuat ribuan data pesanan ke dalam memori.
     recent_orders = Order.objects.order_by('-order_date')[:4]
 
-    # KOMPUTASI TOP PRODUCTS
-    # Kita ambil semua Product.
-    # .annotate(total_sold=Sum('order_items__quantity')) -> Untuk setiap produk, jumlahkan field 'quantity' dari relasi 'order_items'.
-    # .exclude(total_sold=None) -> Abaikan produk yang belum pernah terjual (total_sold bernilai Null).
-    # .order_by('-total_sold') -> Urutkan dari jumlah penjualan terbanyak (tanda minus = descending).
-    # [:4] -> Ambil 4 teratas (LIMIT 4).
-    
+    # Produk Terlaris
     top_products = Product.objects.annotate(
         total_sold=Sum('order_items__kuantitas')
     ).exclude(
         total_sold=None
     ).order_by('-total_sold')[:4]
 
+    # =================================================================
+    # --- LOGIKA GRAFIK TIME SERIES (7 HARI TERAKHIR) ---
+    # =================================================================
+    # 1. Gunakan localtime agar waktu saat ini akurat sesuai WITA
+    now_local = timezone.localtime(timezone.now())
+    seven_days_ago_date = now_local.date() - timedelta(days=6)
+    
+    # 2. Buat batas awal (Jam 00:00:00 pada 7 hari yang lalu di zona WITA)
+    start_datetime = timezone.make_aware(datetime.combine(seven_days_ago_date, datetime.min.time()))
+    
+    # 3. Ambil data mentah (Abaikan fungsi bawaan DB agar tidak error di Docker)
+    raw_orders = Order.objects.filter(
+        status='SLS',
+        order_date__gte=start_datetime
+    ).values('order_date', 'total_harga')
+    
+    # 4. Siapkan kerangka array (0 Rupiah untuk 7 hari ke belakang)
+    date_labels = [(seven_days_ago_date + timedelta(days=i)).strftime('%d %b') for i in range(7)]
+    revenue_data = [0.0] * 7
+    
+    # 5. Kelompokkan pendapatan murni menggunakan kecerdasan Python
+    for order in raw_orders:
+        # Ubah stempel waktu UTC dari Database menjadi WITA
+        local_order_time = timezone.localtime(order['order_date'])
+        date_str = local_order_time.strftime('%d %b')
+        
+        # Tambahkan nominal pendapatan ke hari yang tepat
+        if date_str in date_labels:
+            index = date_labels.index(date_str)
+            revenue_data[index] += float(order['total_harga'])
+
+    # Masukkan semuanya ke dalam context
     context = {
         'total_sales': total_sales,
         'total_orders': total_orders,
         'low_stock_count': low_stock_count,
         'recent_orders': recent_orders,
-        'top_products': top_products
+        'top_products': top_products,
+        
+        # Injeksi data JSON untuk Chart.js
+        'chart_labels': json.dumps(date_labels),
+        'chart_data': json.dumps(revenue_data),
     }
 
     return render(request, 'store/admin/overview.html', context)
@@ -257,7 +278,7 @@ def export_orders_excel(request):
         status_label = status_map.get(order.status, 'Proses')
         metode_png = order.get_metode_pengiriman_display()
         metode_pemb = order.get_metode_pembayaran_display()
-        tanggal_str = order.order_date.strftime('%d-%m-%Y %H:%M') if order.order_date else ''
+        tanggal_str = timezone.localtime(order.order_date).strftime('%d-%m-%Y %H:%M') if order.order_date else ''
         
         row_data = [
             idx,

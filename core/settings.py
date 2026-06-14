@@ -43,7 +43,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Restrict ALLOWED_HOSTS to prevent Host Header Injection attacks
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS]
 
 # Application definition
@@ -87,7 +87,8 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.app'
+    'https://*.ngrok-free.app',
+    'https://2b79-182-11-183-5.ngrok-free.app/'
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -157,7 +158,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Ubah baris ini dari 'en-us' menjadi 'id' (Bahasa Indonesia)
 LANGUAGE_CODE = 'id'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Makassar'
 USE_I18N = True
 USE_TZ = True
 
@@ -195,7 +196,7 @@ CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localho
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = 'Asia/Makassar'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
 

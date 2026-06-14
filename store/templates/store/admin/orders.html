@@ -1,21 +1,26 @@
-{% extends 'store/admin/base.html' %} {% block title %}
+{% extends 'store/admin/base.html' %} 
+
+{% block title %}
   DOC Mart - Pesanan
-{% endblock %} {% block header_title %}
+{% endblock %} 
+
+{% block header_title %}
   Manajemen Pesanan
-{% endblock %} {% block content %}
-  <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+{% endblock %} 
+
+{% block content %}
+  <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
     <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <p class="text-sm font-medium text-on-surface-variant">Kelola, lacak, dan perbarui status pesanan pelanggan.</p>
-      <a href="{% url 'store:export_orders_excel' %}" class="px-4 py-2 rounded-lg border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors flex items-center gap-2 focus:ring-2 focus:ring-primary focus:outline-none">
+      <a href="{% url 'store:export_orders_excel' %}" class="w-full sm:w-auto px-4 py-2 rounded-lg border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 focus:ring-2 focus:ring-primary focus:outline-none">
         <span class="material-symbols-outlined text-[18px]">file_download</span>
         Ekspor Excel
       </a>
     </div>
 
-    <form method="GET" action="{% url 'store:orders' %}" class="bg-surface-container-lowest rounded-xl p-6 mb-8 border border-outline-variant/50 shadow-sm">
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1">
-          <!-- Cari Pesanan -->
+    <form method="GET" action="{% url 'store:orders' %}" class="bg-surface-container-lowest rounded-xl p-4 md:p-6 mb-6 md:mb-8 border border-outline-variant/50 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 md:gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 flex-1 w-full">
           <div class="flex flex-col justify-end">
             <label for="filter-search" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Cari Pesanan</label>
             <div class="relative w-full">
@@ -24,7 +29,6 @@
             </div>
           </div>
 
-          <!-- Status -->
           <div class="flex flex-col justify-end">
             <label for="filter-status" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Status</label>
             <select id="filter-status" name="status" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-4 h-[42px] text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-all">
@@ -32,7 +36,8 @@
                 <option value="ALL" selected>Semua Status</option>
               {% else %}
                 <option value="ALL">Semua Status</option>
-              {% endif %} {% for choice_value, choice_label in status_choices %}
+              {% endif %} 
+              {% for choice_value, choice_label in status_choices %}
                 {% if current_status == choice_value %}
                   <option value="{{ choice_value }}" selected>{{ choice_label }}</option>
                 {% else %}
@@ -42,7 +47,6 @@
             </select>
           </div>
 
-          <!-- Tanggal -->
           <div class="flex flex-col justify-end">
             <label for="filter-date" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tanggal</label>
             <div class="relative w-full">
@@ -52,109 +56,99 @@
           </div>
         </div>
 
-        <!-- Tombol Cari -->
         <div class="w-full lg:w-auto">
           <button type="submit" class="w-full lg:w-auto md:px-8 bg-primary text-white text-sm font-bold h-[42px] px-6 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:outline-none"><span class="material-symbols-outlined text-[18px]">search</span> Cari</button>
         </div>
       </div>
     </form>
 
-    <div class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm">
-      <table class="w-full text-left border-collapse">
-        <thead class="bg-surface-container-low border-b border-outline-variant/30">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">ID Pesanan</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Pelanggan</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tanggal</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Ringkasan</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-            <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Aksi</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-outline-variant/20">
-          {% for order in orders %}
-            <tr class="hover:bg-surface-container-high/50 transition-colors">
-              <td class="px-6 py-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ order.order_id }}</td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <span class="text-sm font-medium text-on-surface">{{ order.nama_pembeli }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm text-on-surface-variant whitespace-nowrap">{{ order.order_date|date:'d/m/Y' }}</td>
-              <td class="px-6 py-4">
-                <span class="text-sm font-medium text-on-surface line-clamp-1 w-48" title="{{ order.items_summary }}">{{ order.items_summary }}</span>
-              </td>
-              <td class="px-6 py-4 text-sm font-bold text-primary whitespace-nowrap">Rp{{ order.total_harga|floatformat:'0g' }}</td>
-              <td class="px-6 py-4">
-                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {% if order.status == 'PRO' %}
-                     bg-secondary/10 text-secondary
-                  {% elif order.status == 'SLS' %}
-                     bg-primary/10 text-primary
-                  {% else %}
-                     bg-error/10 text-error
-                  {% endif %}">
-                  {{ order.get_status_display }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-3">
-                  <form action="{% url 'store:update_order_status' order.id %}" method="POST" class="inline-flex m-0">
-                    {% csrf_token %}
-                    <select name="status"
-                      onchange="this.form.submit()"
-                      class="bg-surface border border-outline-variant/50 rounded-lg text-xs font-bold px-2 py-1.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer transition-colors {% if order.status == 'PRO' %}
-                         text-secondary
-                      {% elif order.status == 'SLS' %}
-                         text-primary
-                      {% else %}
-                         text-error
-                      {% endif %}">
-                      {% for choice_val, choice_label in status_choices %}
-                        {% if order.status == choice_val %}
-                          <option value="{{ choice_val }}" selected>{{ choice_label }}</option>
-                        {% else %}
-                          <option value="{{ choice_val }}">{{ choice_label }}</option>
-                        {% endif %}
-                      {% endfor %}
-                    </select>
-                  </form>
-
-                  <a href="{% url 'store:order_invoice' order.id %}" target="_blank" title="Lihat & Cetak Faktur" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors focus:ring-2 focus:ring-primary outline-none"><span class="material-symbols-outlined text-[18px]">receipt_long</span></a>
-                </div>
-              </td>
-            </tr>
-          {% empty %}
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/50 shadow-sm w-full overflow-hidden">
+      <div class="overflow-x-auto w-full custom-scrollbar">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+          <thead class="bg-surface-container-low border-b border-outline-variant/30">
             <tr>
-              <td colspan="7" class="text-center py-12 text-on-surface-variant text-sm font-medium">Tidak ada pesanan yang sesuai dengan filter.</td>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">ID Pesanan</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Pelanggan</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tanggal</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Ringkasan</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-wider uppercase tracking-wider">Total</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Aksi</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% if orders.has_other_pages %}
-    <div class="px-6 py-4 border-t flex items-center justify-between">
-        <span class="text-sm text-gray-500">
-            Menampilkan halaman {{ orders.number }} dari {{ orders.paginator.num_pages }}
-        </span>
-        <div class="flex gap-1">
-            {% if orders.has_previous %}
-                <a href="?page={{ orders.previous_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-sm font-medium">Prev</a>
-            {% endif %}
-            
-            {% for i in orders.paginator.page_range %}
-                {% if orders.number == i %}
-                    <button class="px-3 py-1 border rounded bg-green-800 text-white text-sm font-medium">{{ i }}</button>
-                {% else %}
-                    <a href="?page={{ i }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-gray-600 text-sm font-medium">{{ i }}</a>
-                {% endif %}
+          </thead>
+          <tbody class="divide-y divide-outline-variant/20">
+            {% for order in orders %}
+              <tr class="hover:bg-surface-container-high/50 transition-colors">
+                <td class="px-6 py-4 text-sm font-bold text-on-surface">{{ order.order_id }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-on-surface">{{ order.nama_pembeli }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant">{{ order.order_date|date:'d/m/Y' }}</td>
+                <td class="px-6 py-4">
+                  <span class="text-sm font-medium text-on-surface line-clamp-1 w-48 block truncate" title="{{ order.items_summary }}">{{ order.items_summary }}</span>
+                </td>
+                <td class="px-6 py-4 text-sm font-bold text-primary">Rp{{ order.total_harga|floatformat:'0g' }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {% if order.status == 'PRO' %} bg-secondary/10 text-secondary {% elif order.status == 'SLS' %} bg-primary/10 text-primary {% else %} bg-error/10 text-error {% endif %}">
+                    {{ order.get_status_display }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-3">
+                    <form action="{% url 'store:update_order_status' order.id %}" method="POST" class="inline-flex m-0">
+                      {% csrf_token %}
+                      <select name="status"
+                        onchange="this.form.submit()"
+                        class="bg-surface border border-outline-variant/50 rounded-lg text-xs font-bold px-2 py-1.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer transition-colors {% if order.status == 'PRO' %} text-secondary {% elif order.status == 'SLS' %} text-primary {% else %} text-error {% endif %}">
+                        {% for choice_val, choice_label in status_choices %}
+                          {% if order.status == choice_val %}
+                            <option value="{{ choice_val }}" selected>{{ choice_label }}</option>
+                          {% else %}
+                            <option value="{{ choice_val }}">{{ choice_label }}</option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                    </form>
+
+                    <a href="{% url 'store:order_invoice' order.id %}" target="_blank" title="Lihat & Cetak Faktur" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors focus:ring-2 focus:ring-primary outline-none"><span class="material-symbols-outlined text-[18px]">receipt_long</span></a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-12 text-on-surface-variant text-sm font-medium">Tidak ada pesanan yang sesuai dengan filter.</td>
+              </tr>
             {% endfor %}
-            
-            {% if orders.has_next %}
-                <a href="?page={{ orders.next_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-50 text-sm font-medium">Next</a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if orders.has_other_pages %}
+      <div class="px-6 py-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container-low/30">
+          <span class="text-sm text-gray-500 text-center sm:text-left">
+              Menampilkan halaman {{ orders.number }} dari {{ orders.paginator.num_pages }}
+          </span>
+          <div class="flex gap-1 justify-center flex-wrap">
+              {% if orders.has_previous %}
+                  <a href="?page={{ orders.previous_page_number }}&{{ query_string }}" class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-sm font-medium bg-white transition-colors">Prev</a>
+              {% endif %}
+              
+              {% for i in orders.paginator.page_range %}
+                  {% if orders.number == i %}
+                      <button class="px-3 py-1.5 border rounded-lg bg-green-800 text-white text-sm font-bold">{{ i }}</button>
+                  {% else %}
+                      <a href="?page={{ i }}&{{ query_string }}" class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-medium bg-white transition-colors">{{ i }}</a>
+                  {% endif %}
+              {% endfor %}
+              
+              {% if orders.has_next %}
+                  <a href="?page={{ orders.next_page_number }}&{{ query_string }}" class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-sm font-medium bg-white transition-colors">Next</a>
+              {% endif %}
+          </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

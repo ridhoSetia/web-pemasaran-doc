@@ -10,26 +10,32 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/invoice.css' %}">
+
+    <script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto mb-6 flex justify-end gap-4 no-print">
+    <div class="max-w-4xl mx-auto mb-6 flex flex-wrap justify-end gap-3 md:gap-4 no-print">
         {% if is_public %}
-            <a href="{% url 'store:market' %}" class="px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center gap-2">
+            <a href="{% url 'store:market' %}" class="w-full sm:w-auto px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center justify-center gap-2 text-sm">
                 <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali Belanja
             </a>
         {% else %}
-            <button onclick="window.close()" class="px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center gap-2">
+            <button onclick="window.close()" class="w-full sm:w-auto px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center justify-center gap-2 text-sm">
                 <span class="material-symbols-outlined text-[18px]">close</span> Tutup Tab
             </button>
         {% endif %}
         
-        <button onclick="window.print()" class="px-6 py-2 bg-green-700 text-white rounded-lg font-bold hover:bg-green-800 transition shadow flex items-center gap-2">
+        <button onclick="downloadDirectPDF()" class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow flex items-center justify-center gap-2 text-sm">
+            <span class="material-symbols-outlined text-[18px]">download</span> Download PDF
+        </button>
+        
+        <button onclick="window.print()" class="w-full sm:w-auto px-6 py-2 bg-green-700 text-white rounded-lg font-bold hover:bg-green-800 transition shadow flex items-center justify-center gap-2 text-sm">
             <span class="material-symbols-outlined text-[18px]">print</span> Cetak Faktur
         </button>
     </div>
 
-    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-md print-shadow print-border relative overflow-hidden">
+    <div id="invoice-print-area" class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-md print-shadow print-border relative overflow-hidden">
 
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-8 mb-8">
             <div>
@@ -37,7 +43,7 @@
                 <p class="text-gray-500 text-sm mt-1">Sistem Peternakan & Distribusi Ayam Kualitas Unggul</p>
             </div>
             <div class="mt-4 md:mt-0 text-left md:text-right">
-                <h2 class="text-2xl font-bold text-gray-800">FAKTUR (INVOICE)</h2>
+                <h2 class="text-2xl font-bold text-gray-800">FAKTUR</h2>
                 <p class="text-gray-500 font-medium">#{{ order.order_id }}</p>
                 <div class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full 
                     {% if order.status == 'PRO' %} bg-yellow-100 text-yellow-800
@@ -61,7 +67,7 @@
                 </p>
             </div>
             
-<div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Detail Transaksi:</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -101,14 +107,13 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    {% for item in order.orderitem_set.all %}
-                    {% widthratio item.kuantitas 1 item.harga_saat_beli as item_subtotal %}
+                    {% for item in order.items.all %}
                     <tr class="hover:bg-gray-50/50 transition">
                         <td class="py-4 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
                         <td class="py-4 px-4 text-sm font-bold text-gray-800">{{ item.product.nama }}</td>
                         <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp{{ item.harga_saat_beli|floatformat:"0g" }}</td>
                         <td class="py-4 px-4 text-sm text-gray-600 text-center">{{ item.kuantitas }}</td>
-                        <td class="py-4 px-4 text-sm font-bold text-gray-800 text-right">Rp{{ item_subtotal|floatformat:"0g" }}</td>
+                        <td class="py-4 px-4 text-sm font-bold text-gray-800 text-right">Rp{{ item.subtotal|floatformat:"0g" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -155,7 +160,7 @@
             </div>
             
             <div class="p-4 flex justify-center bg-gray-200/50 backdrop-blur-sm">
-                <img src="{{ order.bukti_pembayaran.url }}" alt="Bukti Pembayaran" class="h-[65vh] object-contain rounded-lg shadow-sm border border-gray-300">
+                <img src="{{ order.bukti_pembayaran.url }}" alt="Bukti Pembayaran" class="max-h-[65vh] object-contain rounded-lg shadow-sm border border-gray-300">
             </div>
             
             <div class="p-4 border-t bg-gray-50 flex justify-end">
@@ -164,38 +169,32 @@
             
         </div>
     </div>
-
-    <script>
-        function openModal() {
-            const modal = document.getElementById('buktiModal');
-            const content = document.getElementById('modalContent');
-            
-            // Tampilkan elemen dulu
-            modal.classList.remove('hidden');
-            
-            // Jeda sedikit agar transisi opacity & scale bisa berjalan halus (Trick Tailwind)
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('buktiModal');
-            const content = document.getElementById('modalContent');
-            
-            // Kembalikan animasi ke state awal
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            
-            // Sembunyikan elemen setelah durasi animasi selesai (300ms)
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-    </script>
     {% endif %}
 </body>
-</html>
-</body>
+
+<script>
+    function downloadDirectPDF() {
+    // Targetkan area element yang akan dikonversi menjadi file PDF
+    const element = document.getElementById('invoice-print-area');
+    
+    // Konfigurasi parameter render html2pdf secara presisi (A4 Portrait)
+    const options = {
+        margin:       [0.4, 0.4, 0.4, 0.4], // Mengatur batas margin kertas PDF (dalam inchi)
+        filename:     'Faktur-DOCMart-{{ order.order_id }}.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, // Menggandakan resolusi tangkapan agar teks tidak buram saat di-zoom
+            useCORS: true, // Memastikan gambar produk/eksternal bisa dimuat silang origin
+            logging: false 
+        },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Eksekusi generator dan download file instan di browser pelanggan/admin
+    html2pdf().set(options).from(element).save();
+}
+</script>
+
+{% load static %}
+<script src="{% static 'js/invoice.js' %}"></script>
 </html>

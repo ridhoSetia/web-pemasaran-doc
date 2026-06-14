@@ -1,27 +1,26 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const openBtn = document.getElementById('open-sidebar-btn');
-    const closeBtn = document.getElementById('close-sidebar-btn');
+const sidebar = document.getElementById("admin-sidebar");
+const overlay = document.getElementById("mobile-overlay");
+const openBtn = document.getElementById("hamburger-btn");
+const closeBtn = document.getElementById("close-sidebar-btn");
 
-    // Fungsi Buka Sidebar
-    function openSidebar() {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Kunci scroll layar belakang
-    }
+function openSidebar() {
+    sidebar.classList.remove("-translate-x-full");
+    overlay.classList.remove("hidden");
+    // Jeda sedikit agar animasi fade-in Tailwind berjalan
+    setTimeout(() => overlay.classList.remove("opacity-0"), 10);
+}
 
-    // Fungsi Tutup Sidebar
-    function closeSidebar() {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-        document.body.style.overflow = ''; // Buka kembali scroll
-    }
+function closeSidebar() {
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("opacity-0");
+    // Sembunyikan elemen setelah animasi selesai (300ms)
+    setTimeout(() => overlay.classList.add("hidden"), 300);
+}
 
-    // Sambungkan event listener ke tombol jika elemennya ada di layar
-    if (openBtn) openBtn.addEventListener('click', openSidebar);
-    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-    if (overlay) overlay.addEventListener('click', closeSidebar);
+openBtn.addEventListener("click", openSidebar);
+closeBtn.addEventListener("click", closeSidebar);
+overlay.addEventListener("click", closeSidebar); // Tutup sidebar jika layar gelap diklik
 });
 
 // Logika Auto-Hide (Menghilangkan pesan secara otomatis)
