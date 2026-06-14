@@ -58,7 +58,7 @@ class OrderStatus(models.TextChoices):
     BATAL = 'BTL', 'Batal'
 
 class Order(models.Model):
-    order_id = models.CharField(max_length=20, unique=True)
+    order_id = models.CharField(max_length=20, unique=True, db_index=True)
     nama_pembeli = models.CharField(max_length=200)
     nomor_hp = models.CharField(max_length=20)
     
@@ -75,9 +75,14 @@ class Order(models.Model):
     bukti_pembayaran = models.ImageField(upload_to='bukti_transfer/', null=True, blank=True)
     
     total_harga = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=3, choices=OrderStatus.choices, default=OrderStatus.PROSES)
+    status = models.CharField(max_length=3, choices=OrderStatus.choices, default=OrderStatus.PROSES, db_index=True)
     items_summary = models.CharField(max_length=255) 
-    order_date = models.DateTimeField(auto_now_add=True)
+    order_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['status', '-order_date']),
+        ]
 
     def __str__(self):
         return f"{self.order_id} - {self.nama_pembeli}"

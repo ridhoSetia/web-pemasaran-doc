@@ -13,9 +13,21 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Memuat variabel dari file .env (jika ada) ke os.environ
 load_dotenv()
+
+# Initialize Sentry for error tracking
+if os.environ.get('SENTRY_DSN'):
+    sentry_sdk.init(
+        dsn=os.environ.get('SENTRY_DSN'),
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        debug=os.environ.get('DEBUG', 'False') == 'True',
+    )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,8 +42,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
-ALLOWED_HOSTS = ['*']
+# Restrict ALLOWED_HOSTS to prevent Host Header Injection attacks
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS]
 
 # Application definition
 
@@ -48,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # Content Security Policy
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,6 +69,22 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Security headers
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_AGE = 3600  # 1 hour timeout for admin sessions
+
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.app'
@@ -156,3 +186,48 @@ LOGIN_REDIRECT_URL = '/admin/overview/'
 LOGOUT_REDIRECT_URL = '/admin/login/'
 
 FONNTE_TOKEN = os.environ.get("TOKEN_FONNTE")
+
+# ============================================================================
+# CELERY CONFIGURATION (Async Task Processing)
+# ============================================================================
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
+
+# ============================================================================
+# CONTENT SECURITY POLICY (Advanced XSS Protection)
+# ============================================================================
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com',
+    'https://unpkg.com',  # Leaflet & routing machine
+)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",  # Tailwind requires this
+    'https://fonts.googleapis.com',
+    'https://unpkg.com',  # Leaflet
+)
+CSP_FONT_SRC = (
+    "'self'",
+    'https://fonts.gstatic.com',
+)
+CSP_IMG_SRC = (
+    "'self'",
+    'data:',
+    'https:',
+)
+CSP_CONNECT_SRC = (
+    "'self'",
+    'https://nominatim.openstreetmap.org',  # Map geocoding
+    'https://api.fonnte.com',  # WhatsApp API
+)
+CSP_FRAME_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)

@@ -4,23 +4,21 @@ import uuid
 import requests
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-
-from django.shortcuts import render, redirect
-from django.db.models import Sum
-from django.contrib.auth.decorators import user_passes_test
-from .models import Product, Order, OrderItem
-from .models import Product, Order, OrderStatus
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Sum, Q
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.db import IntegrityError, transaction
+from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+from django_ratelimit.decorators import ratelimit
 
-from django.db.models import Q
+from .models import Product, Order, OrderItem, OrderStatus
+from .tasks import convert_product_image_to_webp, convert_order_payment_proof_to_webp
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
-
-from django.core.paginator import Paginator
 
 # Fungsi lambda ini akan memeriksa: "Apakah user ini adalah superuser?"
 # Jika True, View dijalankan. Jika False, user ditendang ke halaman login.
@@ -469,6 +467,7 @@ def cart_view(request):
     """
     return render(request, 'store/web/cart.html')
 
+@ratelimit(key='ip', rate='10/h', method='POST')
 def checkout_process(request):
     if request.method == 'GET':
         return render(request, 'store/web/checkout.html')
@@ -483,9 +482,18 @@ def checkout_process(request):
             lat = request.POST.get('lat', '')
             lng = request.POST.get('lng', '')
             
-            # FITUR BARU: Tangkap jarak (konversi ke float jika ada)
+            # FITUR BARU: Tangkap jarak (konversi ke float jika ada) dengan validasi
             jarak_raw = request.POST.get('jarak_km', '')
-            jarak_km = float(jarak_raw) if jarak_raw else None
+            jarak_km = None
+            if jarak_raw:
+                try:
+                    jarak_km = float(jarak_raw)
+                    if jarak_km < 0 or jarak_km > 500:
+                        messages.error(request, "Jarak harus antara 0-500 km.")
+                        return redirect('store:checkout')
+                except ValueError:
+                    messages.error(request, "Format jarak tidak valid.")
+                    return redirect('store:checkout')
             
             bukti_tf = request.FILES.get('bukti_pembayaran')
             cart_data = json.loads(request.POST.get('cart_data', '[]'))
@@ -548,9 +556,12 @@ def checkout_process(request):
             fonnte_token = settings.FONNTE_TOKEN
             nomor_admin = '0895704050703' 
             
-            # Buat URL Faktur yang bisa di-klik
-            domain = request.get_host()
-            link_faktur = f"http://{domain}/invoice/{order.order_id}/"
+            # Buat URL Faktur yang bisa di-klik (gunakan domain dari settings, bukan dari request)
+            # Ini mencegah Host Header Injection
+            allowed_domains = settings.ALLOWED_HOSTS
+            domain = allowed_domains[0] if allowed_domains else 'localhost'
+            protocol = 'https' if not settings.DEBUG else 'http'
+            link_faktur = f"{protocol}://{domain}/invoice/{order.order_id}/"
             
             maps_url = f"https://www.google.com/maps?q={lat},{lng}" if pengiriman == 'ANT' else "Diambil sendiri."
 
@@ -603,7 +614,8 @@ def checkout_process(request):
         except Exception as e:
             messages.error(request, f"Terjadi kesalahan: {str(e)}")
             return redirect('store:checkout')
-        
+         
+@ratelimit(key='ip', rate='20/h', method='POST')
 def track_order(request):
     """ Halaman Cek Pesanan """
     if request.method == 'POST':
