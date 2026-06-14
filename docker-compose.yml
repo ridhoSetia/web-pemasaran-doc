@@ -5,32 +5,58 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      # Docker secara otomatis membaca file .env di root direktori
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    # BLOK HEALTHCHECK
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   web:
     build: .
-    # Menggunakan port dinamis dari .env
-    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
+    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT:-8000}
     volumes:
       - .:/app
     ports:
-      - "${DJANGO_PORT}:${DJANGO_PORT}"
-    depends_on:
-      - db
-    environment:
-      - DEBUG=${DEBUG}
-      - DB_NAME=${MYSQL_DATABASE}
-      - DB_USER=${MYSQL_USER}
-      - DB_PASSWORD=${MYSQL_PASSWORD}
-      - DB_HOST=db
-      - DB_PORT=3306
+      - "${DJANGO_PORT:-8000}:${DJANGO_PORT:-8000}"
+    env_file:
+      - .env
     restart: always
+    # --- UBAH DEPENDS_ON MENJADI SEPERTI INI ---
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  celery:
+    build: .
+    command: celery -A core worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   mysql_data:
+  redis_data:

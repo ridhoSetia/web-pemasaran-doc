@@ -44,8 +44,8 @@ function updateTotalUI(ongkir) {
 
 // Peta & Logistik — satu definisi bersih
 let map, routingControl, userMarker
-const farmLat = -0.4705
-const farmLng = 117.1538
+const farmLat = -0.44875377355076096
+const farmLng = 117.09608147598206
 
 // Satu-satunya definisi togglePengiriman
 function togglePengiriman() {

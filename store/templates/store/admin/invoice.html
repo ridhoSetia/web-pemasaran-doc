@@ -61,7 +61,7 @@
                 </p>
             </div>
             
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+<div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Detail Transaksi:</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -76,6 +76,15 @@
                         <span class="text-gray-500">Metode Pembayaran</span>
                         <span class="font-semibold">{{ order.get_metode_pembayaran_display }}</span>
                     </div>
+                    
+                    {% if order.bukti_pembayaran %}
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
+                        <span class="text-gray-500 font-medium">Bukti Transfer</span>
+                        <button onclick="openModal()" class="no-print flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-2 py-1 rounded-md">
+                            <span class="material-symbols-outlined text-[14px]">visibility</span> Lihat Foto
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -130,5 +139,63 @@
         </div>
 
     </div>
+
+    {% if order.bukti_pembayaran %}
+    <div id="buktiModal" class="fixed inset-0 z-50 hidden bg-black/80 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 no-print">
+        <div class="relative max-w-2xl w-full bg-white rounded-xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modalContent">
+            
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-green-700">receipt_long</span>
+                    Bukti Transfer ({{ order.order_id }})
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-4 flex justify-center bg-gray-200/50 backdrop-blur-sm">
+                <img src="{{ order.bukti_pembayaran.url }}" alt="Bukti Pembayaran" class="h-[65vh] object-contain rounded-lg shadow-sm border border-gray-300">
+            </div>
+            
+            <div class="p-4 border-t bg-gray-50 flex justify-end">
+                <button onclick="closeModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-100 transition-colors">Tutup</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            const modal = document.getElementById('buktiModal');
+            const content = document.getElementById('modalContent');
+            
+            // Tampilkan elemen dulu
+            modal.classList.remove('hidden');
+            
+            // Jeda sedikit agar transisi opacity & scale bisa berjalan halus (Trick Tailwind)
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('buktiModal');
+            const content = document.getElementById('modalContent');
+            
+            // Kembalikan animasi ke state awal
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            
+            // Sembunyikan elemen setelah durasi animasi selesai (300ms)
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+    {% endif %}
+</body>
+</html>
 </body>
 </html>

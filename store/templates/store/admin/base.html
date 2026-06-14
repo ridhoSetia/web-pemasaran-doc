@@ -1,145 +1,259 @@
-<!DOCTYPE html>
+<!Doctype html>
 <html class="light" lang="id">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-      {% block title %}
-        DOC Mart Admin - Dashboard
-      {% endblock %}
-    </title>
+    <title>{% block title %} DOC Mart Admin - Dashboard {% endblock %}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/base_admin.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/base_admin.css' %}">
     <script id="tailwind-config">
       tailwind.config = {
-        darkMode: 'class',
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
-              'on-primary-fixed': '#002201',
-              'inverse-on-surface': '#f0f2df',
-              'on-primary-container': '#9dd090',
-              'inverse-surface': '#2f3225',
-              'on-tertiary': '#ffffff',
-              'primary-fixed': '#bcf0ae',
-              primary: '#154212',
-              'on-secondary-fixed': '#2c160e',
-              'inverse-primary': '#a1d494',
-              'surface-container-high': '#e8ead6',
-              'on-secondary-fixed-variant': '#5d4037',
-              'surface-dim': '#d9dcc8',
-              'on-primary-fixed-variant': '#23501e',
-              'on-tertiary-fixed-variant': '#3c4c2c',
-              'on-primary': '#ffffff',
-              'primary-container': '#2d5a27',
-              'on-secondary': '#ffffff',
-              'on-surface': '#1a1d11',
-              surface: '#f9fbe7',
-              tertiary: '#2e3e20',
-              'secondary-fixed': '#ffdbd0',
-              'surface-container-low': '#f3f5e1',
-              'surface-container-lowest': '#ffffff',
-              'on-surface-variant': '#42493e',
-              'surface-container-highest': '#e2e4d1',
-              'secondary-container': '#fed3c7',
-              'on-error-container': '#93000a',
-              'on-tertiary-fixed': '#111f05',
-              outline: '#72796e',
-              secondary: '#77574d',
-              'outline-variant': '#c2c9bb',
-              'tertiary-container': '#455535',
-              background: '#f9fbe7',
-              'on-background': '#1a1d11',
-              'surface-variant': '#e2e4d1',
-              'surface-tint': '#3b6934',
-              'tertiary-fixed': '#d6e9be',
-              'tertiary-fixed-dim': '#bacda4',
-              'primary-fixed-dim': '#a1d494',
-              'on-secondary-container': '#795950',
-              'on-tertiary-container': '#b6c9a0',
-              'error-container': '#ffdad6',
-              'surface-container': '#edf0dc',
-              'on-error': '#ffffff',
-              'surface-bright': '#f9fbe7',
-              'secondary-fixed-dim': '#e7bdb1',
-              error: '#ba1a1a'
+              "on-primary-fixed": "#002201",
+              "inverse-on-surface": "#f0f2df",
+              "on-primary-container": "#9dd090",
+              "inverse-surface": "#2f3225",
+              "on-tertiary": "#ffffff",
+              "primary-fixed": "#bcf0ae",
+              primary: "#154212",
+              "on-secondary-fixed": "#2c160e",
+              "inverse-primary": "#a1d494",
+              "surface-container-high": "#e8ead6",
+              "on-secondary-fixed-variant": "#5d4037",
+              "surface-dim": "#d9dcc8",
+              "on-primary-fixed-variant": "#23501e",
+              "on-tertiary-fixed-variant": "#3c4c2c",
+              "on-primary": "#ffffff",
+              "primary-container": "#2d5a27",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1a1d11",
+              surface: "#f9fbe7",
+              tertiary: "#2e3e20",
+              "secondary-fixed": "#ffdbd0",
+              "surface-container-low": "#f3f5e1",
+              "surface-container-lowest": "#ffffff",
+              "on-surface-variant": "#42493e",
+              "surface-container-highest": "#e2e4d1",
+              "secondary-container": "#fed3c7",
+              "on-error-container": "#93000a",
+              "on-tertiary-fixed": "#111f05",
+              outline: "#72796e",
+              secondary: "#77574d",
+              "outline-variant": "#c2c9bb",
+              "tertiary-container": "#455535",
+              background: "#f9fbe7",
+              "on-background": "#1a1d11",
+              "surface-variant": "#e2e4d1",
+              "surface-tint": "#3b6934",
+              "tertiary-fixed": "#d6e9be",
+              "tertiary-fixed-dim": "#bacda4",
+              "primary-fixed-dim": "#a1d494",
+              "on-secondary-container": "#795950",
+              "on-tertiary-container": "#b6c9a0",
+              "error-container": "#ffdad6",
+              "surface-container": "#edf0dc",
+              "on-error": "#ffffff",
+              "surface-bright": "#f9fbe7",
+              "secondary-fixed-dim": "#e7bdb1",
+              error: "#ba1a1a",
             },
             borderRadius: {
-              DEFAULT: '0.25rem',
-              lg: '0.5rem',
-              xl: '0.75rem',
-              full: '9999px'
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
             },
             fontFamily: {
-              'label-sm': ['Open Sans', 'sans-serif'],
-              h3: ['Open Sans', 'sans-serif'],
-              h1: ['Open Sans', 'sans-serif'],
-              h2: ['Open Sans', 'sans-serif'],
-              'body-lg': ['Open Sans', 'sans-serif'],
-              'body-md': ['Open Sans', 'sans-serif']
+              "label-sm": ["Open Sans", "sans-serif"],
+              h3: ["Open Sans", "sans-serif"],
+              h1: ["Open Sans", "sans-serif"],
+              h2: ["Open Sans", "sans-serif"],
+              "body-lg": ["Open Sans", "sans-serif"],
+              "body-md": ["Open Sans", "sans-serif"],
             },
             fontSize: {
-              xs: ['11px', '16px'], // Turun dari 12px
-              sm: ['13px', '20px'], // Turun dari 14px
-              base: ['14px', '24px'], // Turun dari 16px
-              lg: ['16px', '24px'], // Turun dari 18px
-              xl: ['18px', '28px'], // Turun dari 20px
+              'xs': ['11px', '16px'], // Turun dari 12px
+              'sm': ['13px', '20px'], // Turun dari 14px
+              'base': ['14px', '24px'], // Turun dari 16px
+              'lg': ['16px', '24px'], // Turun dari 18px
+              'xl': ['18px', '28px'], // Turun dari 20px
               '2xl': ['20px', '28px'], // Turun dari 24px
-              '3xl': ['24px', '32px'] // Turun dari 30px
+              '3xl': ['24px', '32px'], // Turun dari 30px
             }
-          }
-        }
-      }
+          },
+        },
+      };
     </script>
   </head>
-  <body class="bg-surface-container-lowest text-on-surface antialiased custom-scrollbar">
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden transition-opacity duration-300"></div>
-
+  <body class="bg-background text-on-background">
     <div class="flex h-screen overflow-hidden">
-      <aside id="sidebar" class="w-64 bg-surface flex flex-col border-r border-outline-variant fixed inset-y-0 left-0 z-50 transform -translate-x-full lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl lg:shadow-none h-full">
-        <div class="p-6 border-b border-outline-variant/30 flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-              <span class="material-symbols-outlined font-bold text-[24px]">home_app_logo</span>
-            </div>
-            <div>
-              <h1 class="font-bold text-lg text-primary leading-tight">DOC Mart</h1>
-              <p class="text-xs text-on-surface-variant font-medium">Admin Panel</p>
-            </div>
+      <aside
+        class="w-72 bg-surface-container border-r border-outline-variant flex flex-col shrink-0"
+        aria-label="Sidebar Admin"
+      >
+        <div class="p-6 flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >agriculture</span
+            >
           </div>
-          <button id="close-sidebar-btn" class="lg:hidden text-on-surface-variant hover:text-error transition-colors focus:outline-none"><span class="material-symbols-outlined">close</span></button>
+          <div>
+            <h1 class="text-lg font-bold text-on-surface leading-tight">
+              DOC Mart Admin
+            </h1>
+            <p
+              class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider"
+            >
+              Portal Manajemen
+            </p>
+          </div>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar"></nav>
-
-        <div class="p-4 border-t border-outline-variant/30">
-          <a href="{% url 'admin:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-error rounded-xl hover:bg-error/10 transition-colors group">
-            <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
-            Keluar Sistem
+        {% load active_link_tags %}
+        <nav
+          class="flex-1 px-4 py-2 space-y-1.5"
+          aria-label="Menu Navigasi Utama"
+        >
+          <a
+            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm focus:outline-none focus:ring-2 focus:ring-primary {% active_link 'store:overview' 'bg-primary text-white is-active font-bold shadow-md' 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-semibold' strict=True %}"
+            href="{% url 'store:overview' %}"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >dashboard</span
+            >
+            <span>Ringkasan</span>
           </a>
+          <a
+            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm focus:outline-none focus:ring-2 focus:ring-primary {% active_link 'store:orders' 'bg-primary text-white is-active font-bold shadow-md' 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-semibold' %}"
+            href="{% url 'store:orders' %}"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >shopping_cart</span
+            >
+            <span>Pesanan</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm focus:outline-none focus:ring-2 focus:ring-primary {% active_link 'store:inventory' 'bg-primary text-white is-active font-bold shadow-md' 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-semibold' %}"
+            href="{% url 'store:inventory' %}"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >inventory_2</span
+            >
+            <span>Inventaris</span>
+          </a>
+
+          <div
+            class="h-[1px] w-full bg-outline-variant/50 my-4"
+            role="separator"
+          ></div>
+
+          <a
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-error text-sm font-semibold hover:bg-error/10 transition-colors focus:outline-none focus:ring-2 focus:ring-error"
+            href="{% url 'store:logout' %}"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >logout</span
+            >
+            <span>Keluar Sistem</span>
+          </a>
+        </nav>
+
+        <div
+          class="p-4 m-4 rounded-xl bg-surface-container-high/50 border border-outline-variant/30"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm"
+            >
+              {{ request.user.username|make_list|first|upper|default:'A' }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-on-surface truncate">
+                {{ request.user.username|default:'Admin' }}
+              </p>
+              <p
+                class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider"
+              >
+                Administrator
+              </p>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <main class="flex-1 flex flex-col h-screen overflow-hidden bg-surface-container-lowest relative">
-        <header class="lg:hidden bg-surface border-b border-outline-variant/30 p-4 flex items-center justify-between sticky top-0 z-30">
-          <div class="flex items-center gap-3">
-            <button id="open-sidebar-btn" class="text-on-surface p-1 rounded-lg hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-[28px]">menu</span></button>
-            <h2 class="font-bold text-lg text-primary">DOC Mart</h2>
+      <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+        <header
+          class="h-20 bg-surface border-b border-outline-variant/50 px-8 flex items-center justify-between shrink-0"
+          aria-label="Header Papan Kendali"
+        >
+          <h2 class="serif-heading text-xl font-bold text-on-surface">
+            {% block header_title %} Ringkasan Dashboard {% endblock %}
+          </h2>
+
+          <div class="flex items-center gap-6">
+            <!-- Tombol Pengaturan -->
+            <a
+              href="#"
+              aria-label="Pengaturan"
+              class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              ><span class="material-symbols-outlined" aria-hidden="true"
+                >settings</span
+              ></a
+            >
+
+            <!-- Tombol Notifikasi -->
+            <button
+              type="button"
+              aria-label="Notifikasi"
+              class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <span class="material-symbols-outlined" aria-hidden="true"
+                >notifications</span
+              >
+              <span
+                class="absolute top-1 right-1 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface"
+              ></span>
+            </button>
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-          {% block content %}
-
-          {% endblock %}
-        </div>
+        {% block content %} {% endblock %}
       </main>
     </div>
+    {% if messages %}
+    <div
+      id="toast-container"
+      class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"
+    >
+      {% for message in messages %}
+      <div
+        class="toast-message flex items-center gap-3 p-4 rounded-xl shadow-2xl w-80 transform transition-all duration-500 translate-x-0 opacity-100 {% if message.tags == 'error' %} bg-error text-white {% else %} bg-primary text-white {% endif %}"
+      >
+        <span class="material-symbols-outlined text-[24px]">
+          {% if message.tags == 'error' %} error {% else %} check_circle 
+          {% endif %}
+        </span>
+        <p class="text-sm font-bold flex-1 leading-snug">{{ message }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
   </body>
   {% load static %}
   <script src="{% static 'js/base_admin.js' %}"></script>

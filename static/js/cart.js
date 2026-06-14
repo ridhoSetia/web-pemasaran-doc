@@ -39,7 +39,12 @@ function renderCart() {
                         <div class="flex items-center gap-3">
                             <div class="flex items-center bg-surface-container rounded-lg border border-outline-variant overflow-hidden">
                                 <button onclick="updateQty(${index}, -1)" class="w-8 h-8 flex items-center justify-center hover:bg-surface-variant transition-colors text-on-surface-variant font-bold">-</button>
-                                <span class="w-10 text-center text-sm font-bold">${item.qty}</span>
+                                <input type="number" 
+                                    value="${item.qty}" 
+                                    min="1" 
+                                    max="${item.max_stok}" 
+                                    onchange="setQty(${index}, this.value)" 
+                                    class="w-12 text-center text-sm font-bold bg-transparent border-none focus:ring-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 <button onclick="updateQty(${index}, 1)" class="w-8 h-8 flex items-center justify-center hover:bg-surface-variant transition-colors text-on-surface-variant font-bold">+</button>
                             </div>
                             <span class="text-xs text-on-surface-variant">Max: ${item.max_stok}</span>
@@ -75,6 +80,26 @@ function updateQty(index, change) {
     } else if (newQty > cart[index].max_stok) {
         alert('Melebihi batas stok maksimal yang tersedia!');
     }
+}
+
+function setQty(index, newValue) {
+    let cart = JSON.parse(localStorage.getItem('doc_cart'));
+    let parsedValue = parseInt(newValue);
+
+    // Jika input kosong, bukan angka, atau kurang dari 1, setel ke 1
+    if (isNaN(parsedValue) || parsedValue < 1) {
+        parsedValue = 1;
+    } 
+    // Jika melebihi stok maksimal
+    else if (parsedValue > cart[index].max_stok) {
+        alert('Melebihi batas stok maksimal yang tersedia!');
+        parsedValue = cart[index].max_stok;
+    }
+
+    // Simpan perubahan dan render ulang layar
+    cart[index].qty = parsedValue;
+    localStorage.setItem('doc_cart', JSON.stringify(cart));
+    renderCart();
 }
 
 function removeItem(index) {

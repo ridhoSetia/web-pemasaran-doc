@@ -199,35 +199,45 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
 
-# ============================================================================
-# CONTENT SECURITY POLICY (Advanced XSS Protection)
-# ============================================================================
+# ==============================================================================
+# CONTENT SECURITY POLICY (CSP) SETTINGS
+# ==============================================================================
 CSP_DEFAULT_SRC = ("'self'",)
+
 CSP_SCRIPT_SRC = (
     "'self'",
-    'https://cdn.tailwindcss.com',
-    'https://fonts.googleapis.com',
-    'https://unpkg.com',  # Leaflet & routing machine
+    "'unsafe-eval'", # Sering dibutuhkan oleh Tailwind CDN untuk kalkulasi config
+    "https://cdn.tailwindcss.com",
+    "https://unpkg.com",
 )
+
 CSP_STYLE_SRC = (
     "'self'",
-    "'unsafe-inline'",  # Tailwind requires this
-    'https://fonts.googleapis.com',
-    'https://unpkg.com',  # Leaflet
+    "'unsafe-inline'", # Wajib untuk Tailwind dan injeksi CSS dinamis
+    "https://fonts.googleapis.com",
+    "https://unpkg.com",
 )
+
 CSP_FONT_SRC = (
     "'self'",
-    'https://fonts.gstatic.com',
+    "https://fonts.gstatic.com",
 )
+
 CSP_IMG_SRC = (
     "'self'",
-    'data:',
-    'https:',
+    "data:",
+    "https:",
 )
+
 CSP_CONNECT_SRC = (
     "'self'",
-    'https://nominatim.openstreetmap.org',  # Map geocoding
-    'https://api.fonnte.com',  # WhatsApp API
+    "https://nominatim.openstreetmap.org",
+    "https://api.fonnte.com",
 )
+
 CSP_FRAME_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
+
+# Fitur Penyelamat: Jika DEBUG=True (sedang masa dev lokal), CSP hanya akan 
+# memberikan peringatan di Console, tanpa merusak atau memblokir tampilannya.
+CSP_REPORT_ONLY = DEBUG
