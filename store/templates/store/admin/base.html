@@ -4,112 +4,107 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>{% block title %} DOC Mart Admin - Dashboard {% endblock %}</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/base_admin.css' %}">
     <script id="tailwind-config">
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        /* ── Primary — Hijau Tua ── */
-        "primary":                   "#1B3A2D",
-        "on-primary":                "#FFFFFF",
-        "primary-container":         "#2D6A4F",
-        "on-primary-container":      "#A8D5B5",
-        "primary-fixed":             "#A8D5B5",
-        "primary-fixed-dim":         "#87BFA0",
-        "on-primary-fixed":          "#002112",
-        "on-primary-fixed-variant":  "#1B3A2D",
-        "inverse-primary":           "#87BFA0",
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              /* ── Primary — Hijau Segar ── */
+              "primary":                   "#154212",
+              "on-primary":                "#FFFFFF",
+              "primary-container":         "#2D5A27",
+              "on-primary-container":      "#9DD090",
+              "primary-fixed":             "#BCF0AE",
+              "primary-fixed-dim":         "#A1D494",
+              "on-primary-fixed":          "#002201",
+              "on-primary-fixed-variant":  "#23501E",
+              "inverse-primary":           "#A1D494",
 
-        /* ── Secondary — Emas/Amber ── */
-        "secondary":                 "#D4A017",
-        "on-secondary":              "#3B2900",
-        "secondary-container":       "#FEF3C7",
-        "on-secondary-container":    "#7C5A00",
-        "secondary-fixed":           "#FEF3C7",
-        "secondary-fixed-dim":       "#F5DD8A",
-        "on-secondary-fixed":        "#3B2900",
-        "on-secondary-fixed-variant":"#7C5A00",
+              /* ── Secondary — Emas/Amber ── */
+              "secondary":                 "#D4A017",
+              "on-secondary":              "#3B2900",
+              "secondary-container":       "#FEF3C7",
+              "on-secondary-container":    "#7C5A00",
+              "secondary-fixed":           "#FEF3C7",
+              "secondary-fixed-dim":       "#F5DD8A",
+              "on-secondary-fixed":        "#3B2900",
+              "on-secondary-fixed-variant":"#7C5A00",
 
-        /* ── Tertiary — Sage ── */
-        "tertiary":                  "#4A6741",
-        "on-tertiary":               "#FFFFFF",
-        "tertiary-container":        "#C6DDB8",
-        "on-tertiary-container":     "#0F2A0A",
-        "tertiary-fixed":            "#C6DDB8",
-        "tertiary-fixed-dim":        "#AAC89D",
-        "on-tertiary-fixed":         "#0F2A0A",
-        "on-tertiary-fixed-variant": "#30502A",
+              /* ── Tertiary — Sage ── */
+              "tertiary":                  "#2E3E20",
+              "on-tertiary":               "#FFFFFF",
+              "tertiary-container":        "#455535",
+              "on-tertiary-container":     "#B6C9A0",
+              "tertiary-fixed":            "#C6DDB8",
+              "tertiary-fixed-dim":        "#AAC89D",
+              "on-tertiary-fixed":         "#0F2A0A",
+              "on-tertiary-fixed-variant": "#30502A",
 
-        /* ── Backgrounds & Surfaces ── */
-        "background":                "#FAF7F0",
-        "on-background":             "#161A14",
-        "surface":                   "#F5F1E8",
-        "on-surface":                "#161A14",
-        "surface-variant":           "#EDE8DD",
-        "on-surface-variant":        "#3D4B3A",
-        "surface-dim":               "#D8D2C5",
-        "surface-bright":            "#FAF7F0",
-        "surface-tint":              "#2D6A4F",
-        "surface-container-lowest":  "#FFFFFF",
-        "surface-container-low":     "#F5F1E8",
-        "surface-container":         "#EDE8DD",
-        "surface-container-high":    "#E8E2D6",
-        "surface-container-highest": "#DDD7CA",
+              /* ── Backgrounds & Surfaces ── */
+              "background":                "#FAF7F0",
+              "on-background":             "#161A14",
+              "surface":                   "#F5F1E8",
+              "on-surface":                "#161A14",
+              "surface-variant":           "#EDE8DD",
+              "on-surface-variant":        "#3D4B3A",
+              "surface-dim":               "#D8D2C5",
+              "surface-bright":            "#FAF7F0",
+              "surface-tint":              "#3B6934",
+              "surface-container-lowest":  "#FFFFFF",
+              "surface-container-low":     "#F5F1E8",
+              "surface-container":         "#EDE8DD",
+              "surface-container-high":    "#E8E2D6",
+              "surface-container-highest": "#DDD7CA",
 
-        /* ── Inverse ── */
-        "inverse-surface":           "#2A2820",
-        "inverse-on-surface":        "#F5F1E8",
+              /* ── Inverse ── */
+              "inverse-surface":           "#2A2820",
+              "inverse-on-surface":        "#F5F1E8",
 
-        /* ── Outline ── */
-        "outline":                   "#6B7A68",
-        "outline-variant":           "#C8BFB0",
+              /* ── Outline ── */
+              "outline":                   "#6B7A68",
+              "outline-variant":           "#C8BFB0",
 
-        /* ── Error ── */
-        "error":                     "#BA1A1A",
-        "on-error":                  "#FFFFFF",
-        "error-container":           "#FFDAD6",
-        "on-error-container":        "#93000A",
-      },
-      borderRadius: {
-        DEFAULT: "0.25rem",
-        lg:      "0.5rem",
-        xl:      "0.75rem",
-        full:    "9999px",
-      },
-      fontFamily: {
-        "label-sm": ["Open Sans", "sans-serif"],
-        "h1":       ["Open Sans", "sans-serif"],
-        "h2":       ["Open Sans", "sans-serif"],
-        "h3":       ["Open Sans", "sans-serif"],
-        "body-lg":  ["Open Sans", "sans-serif"],
-        "body-md":  ["Open Sans", "sans-serif"],
-      },
-      fontSize: {
-        "xs":   ["11px", "16px"],
-        "sm":   ["13px", "20px"],
-        "base": ["14px", "24px"],
-        "lg":   ["16px", "24px"],
-        "xl":   ["18px", "28px"],
-        "2xl":  ["20px", "28px"],
-        "3xl":  ["24px", "32px"],
-      },
-    },
-  },
-};
+              /* ── Error ── */
+              "error":                     "#BA1A1A",
+              "on-error":                  "#FFFFFF",
+              "error-container":           "#FFDAD6",
+              "on-error-container":        "#93000A",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg:      "0.5rem",
+              xl:      "0.75rem",
+              full:    "9999px",
+            },
+            fontFamily: {
+              "label-sm": ["Open Sans", "sans-serif"],
+              "h1":       ["Open Sans", "sans-serif"],
+              "h2":       ["Open Sans", "sans-serif"],
+              "h3":       ["Open Sans", "sans-serif"],
+              "body-lg":  ["Open Sans", "sans-serif"],
+              "body-md":  ["Open Sans", "sans-serif"],
+            },
+            fontSize: {
+              "xs":   ["11px", "16px"],
+              "sm":   ["13px", "20px"],
+              "base": ["14px", "24px"],
+              "lg":   ["16px", "24px"],
+              "xl":   ["18px", "28px"],
+              "2xl":  ["20px", "28px"],
+              "3xl":  ["24px", "32px"],
+            },
+          },
+        },
+      };
     </script>
   </head>
   <body class="bg-background text-on-background relative">
@@ -118,10 +113,7 @@ tailwind.config = {
 
     <div class="flex h-screen overflow-hidden">
 
-      <!-- ═══════════════════════════════════════════
-           SIDEBAR — bg-primary (hijau tua #1B3A2D)
-           Semua teks & ikon di sini pakai text-white
-      ════════════════════════════════════════════ -->
+      <!-- SIDEBAR: bg-primary = hijau segar #154212 -->
       <aside
         id="admin-sidebar"
         class="w-72 bg-primary border-r border-white/10 flex flex-col shrink-0 fixed inset-y-0 left-0 z-50 transform -translate-x-full lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none"
@@ -130,7 +122,7 @@ tailwind.config = {
         <!-- Logo -->
         <div class="p-6 flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <!-- Logo mark pakai bg-secondary (emas) supaya kontras di atas hijau tua -->
+            <!-- Logo mark: emas supaya kontras di atas hijau -->
             <div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shadow-sm">
               <span class="material-symbols-outlined text-on-secondary" aria-hidden="true">agriculture</span>
             </div>
@@ -145,7 +137,7 @@ tailwind.config = {
         </div>
 
         {% load active_link_tags %}
-        <!-- Nav — item aktif: emas (secondary), item biasa: putih redup -->
+        <!-- Nav aktif: emas; non-aktif: putih redup; hover: putih transparan -->
         <nav class="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto custom-scrollbar" aria-label="Menu Navigasi Utama">
           <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm focus:outline-none focus:ring-2 focus:ring-secondary {% active_link 'store:overview' 'bg-secondary text-on-secondary is-active font-bold shadow-md' 'text-white/60 hover:bg-white/10 hover:text-white font-semibold' strict=True %}" href="{% url 'store:overview' %}">
             <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
@@ -162,17 +154,15 @@ tailwind.config = {
 
           <div class="h-[1px] w-full bg-white/10 my-4" role="separator"></div>
 
-          <!-- Keluar: merah redup supaya tetap terbaca di atas sidebar gelap -->
           <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 text-sm font-semibold hover:bg-red-400/10 transition-colors focus:outline-none focus:ring-2 focus:ring-error" href="{% url 'store:logout' %}">
             <span class="material-symbols-outlined" aria-hidden="true">logout</span>
             <span>Keluar Sistem</span>
           </a>
         </nav>
 
-        <!-- User card bawah sidebar -->
+        <!-- User card -->
         <div class="p-4 m-4 rounded-xl bg-white/5 border border-white/10">
           <div class="flex items-center gap-3">
-            <!-- Avatar pakai bg-primary-container (#2D6A4F) supaya beda dari sidebar -->
             <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-sm">
               {{ request.user.username|make_list|first|upper|default:'A' }}
             </div>
@@ -188,35 +178,26 @@ tailwind.config = {
         </div>
       </aside>
 
-      <!-- ═══════════════════════════════════════════
-           MAIN — bg-background (krem #FAF7F0)
-           Header pakai bg-surface-container-lowest (putih bersih)
-      ════════════════════════════════════════════ -->
+      <!-- MAIN: background krem hangat -->
       <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
 
+        <!-- HEADER: putih bersih, teks gelap -->
         <header class="h-16 md:h-20 bg-surface-container-lowest border-b border-outline-variant/50 px-4 md:px-8 flex items-center justify-between shrink-0" aria-label="Header Papan Kendali">
-
           <div class="flex items-center gap-3 md:gap-4">
-            <!-- Hamburger: teks gelap karena header terang -->
             <button id="hamburger-btn" aria-label="Buka Menu" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition-colors">
               <span class="material-symbols-outlined">menu</span>
             </button>
-
-            <!-- Judul header: gelap karena background header terang -->
             <h2 class="serif-heading text-lg md:text-xl font-bold text-on-surface truncate">
               {% block header_title %} Ringkasan Dashboard {% endblock %}
             </h2>
           </div>
 
           <div class="flex items-center gap-2 md:gap-6">
-            <!-- Icon settings & notifikasi: gelap karena header terang -->
             <a href="#" aria-label="Pengaturan" class="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
               <span class="material-symbols-outlined" aria-hidden="true">settings</span>
             </a>
-
             <button type="button" aria-label="Notifikasi" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
               <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-              <!-- Dot notifikasi pakai secondary (emas) agar lebih sesuai brand -->
               <span class="absolute top-1 right-1 md:top-2 md:right-2 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-surface-container-lowest"></span>
             </button>
           </div>

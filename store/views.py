@@ -22,9 +22,72 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.forms import AuthenticationForm
+from django import forms
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+
 # Fungsi lambda ini akan memeriksa: "Apakah user ini adalah superuser?"
 # Jika True, View dijalankan. Jika False, user ditendang ke halaman login.
 admin_only = user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')
+
+class AdminLoginForm(AuthenticationForm):
+    """Form login admin khusus dengan validasi Cloudflare Turnstile Backend"""
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Django secara otomatis menyuntikkan objek 'request' ke dalam form kwargs
+        request = self.request
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        
+        if not turnstile_token:
+            raise forms.ValidationError("Verifikasi keamanan Captcha wajib diisi.")
+            
+        # Kirim permintaan validasi (siteverify) langsung ke server Cloudflare
+        try:
+            response = requests.post(
+                'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+                data={
+                    'secret': settings.CLOUDFLARE_TURNSTILE_SECRET_KEY,
+                    'response': turnstile_token,
+                    # 'remoteip': request.META.get('REMOTE_ADDR')
+                },
+                timeout=5 # Batasi waktu tunggu maksimal 5 detik agar tidak memblokir thread
+            )
+            result = response.json()
+            
+            # Jika Cloudflare menyatakan token ini palsu/manipulasi bot
+            if not result.get('success'):
+                error_codes = result.get('error-codes', ['unknown'])
+                raise forms.ValidationError("Verifikasi Captcha gagal. Deteksi aktivitas mencurigakan.")
+                
+        except requests.exceptions.RequestException:
+            # Penanganan kegagalan koneksi keluar agar admin tidak terkunci jika API Cloudflare down
+            raise forms.ValidationError("Gagal menghubungi server verifikasi. Silakan coba sesaat lagi.")
+            
+        return cleaned_data
+
+
+# Pertahanan Berlapis (Defense in Depth): 
+# Layer 1: Batasi spam massal dari 1 IP (10x/menit)
+# Layer 2: Batasi penebakan terdistribusi pada 1 username spesifik (5x/15menit)
+@method_decorator([
+    ratelimit(key='ip', rate='10/m', method='POST', block=True),
+    ratelimit(key='post:username', rate='5/15m', method='POST', block=True)
+], name='dispatch')
+class CustomAdminLoginView(LoginView):
+    """View Login Admin yang dilindungi Cloudflare Turnstile & Multi-Key Rate Limiting"""
+    form_class = AdminLoginForm
+    template_name = 'admin/login.html'
+    redirect_authenticated_user = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Kirim Site Key ke template HTML untuk inisialisasi widget di sisi klien
+        context['turnstile_site_key'] = settings.CLOUDFLARE_TURNSTILE_SITE_KEY
+        return context
 
 @admin_only
 def inventory_list(request):
@@ -115,18 +178,13 @@ def overview_dashboard(request):
     date_labels = [(seven_days_ago_date + timedelta(days=i)).strftime('%d %b') for i in range(7)]
     revenue_data = [0.0] * 7
     
-    # 5. Kelompokkan pendapatan murni menggunakan kecerdasan Python
     for order in raw_orders:
-        # Ubah stempel waktu UTC dari Database menjadi WITA
         local_order_time = timezone.localtime(order['order_date'])
         date_str = local_order_time.strftime('%d %b')
-        
-        # Tambahkan nominal pendapatan ke hari yang tepat
         if date_str in date_labels:
             index = date_labels.index(date_str)
             revenue_data[index] += float(order['total_harga'])
 
-    # Masukkan semuanya ke dalam context
     context = {
         'total_sales': total_sales,
         'total_orders': total_orders,
@@ -134,7 +192,7 @@ def overview_dashboard(request):
         'recent_orders': recent_orders,
         'top_products': top_products,
         
-        # Injeksi data JSON untuk Chart.js
+        # PENTING: Gunakan json.dumps agar datanya mutlak aman dan tidak memicu error JS lagi
         'chart_labels': json.dumps(date_labels),
         'chart_data': json.dumps(revenue_data),
     }

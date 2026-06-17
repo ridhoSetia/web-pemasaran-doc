@@ -19,10 +19,7 @@ urlpatterns = [
     # AREA ADMIN KUSTOM
 
     # RUTE OTENTIKASI (diletakkan sebelum rute dashboard)
-    path('admin/login/', auth_views.LoginView.as_view(
-        template_name='admin/login.html',
-        redirect_authenticated_user=True # Mencegah user yang sudah login melihat form ini lagi
-    ), name='login'),
+    path('admin/login/', views.CustomAdminLoginView.as_view(), name='login'),
     
     path('admin/logout/', auth_views.LogoutView.as_view(
         next_page='/admin/login/' # Setelah logout, kembalikan ke halaman login

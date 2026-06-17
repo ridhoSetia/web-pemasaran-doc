@@ -88,7 +88,6 @@ SECURE_HSTS_PRELOAD = not DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.app',
-    'https://2b79-182-11-183-5.ngrok-free.app/'
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -207,9 +206,12 @@ CSP_DEFAULT_SRC = ("'self'",)
 
 CSP_SCRIPT_SRC = (
     "'self'",
-    "'unsafe-eval'", # Sering dibutuhkan oleh Tailwind CDN untuk kalkulasi config
+    "'unsafe-eval'", 
+    "'unsafe-inline'",
     "https://cdn.tailwindcss.com",
     "https://unpkg.com",
+    "https://challenges.cloudflare.com",
+    "https://cdn.jsdelivr.net",
 )
 
 CSP_STYLE_SRC = (
@@ -236,9 +238,15 @@ CSP_CONNECT_SRC = (
     "https://api.fonnte.com",
 )
 
-CSP_FRAME_SRC = ("'none'",)
+CSP_FRAME_SRC = ("'none'",'https://challenges.cloudflare.com/')
 CSP_BASE_URI = ("'self'",)
 
 # Fitur Penyelamat: Jika DEBUG=True (sedang masa dev lokal), CSP hanya akan 
 # memberikan peringatan di Console, tanpa merusak atau memblokir tampilannya.
 CSP_REPORT_ONLY = DEBUG
+
+# ============================================================================
+# CLOUDFLARE TURNSTILE CONFIGURATION
+# ============================================================================
+CLOUDFLARE_TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+CLOUDFLARE_TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
