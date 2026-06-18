@@ -1,0 +1,23 @@
+[mysqld]
+# 1. MATIKAN PERFORMANCE SCHEMA (Wajib untuk RAM kecil)
+# Secara bawaan, fitur ini memakan sekitar 150MB-200MB RAM.
+performance_schema = 0
+
+# 2. BATASI INNODB BUFFER POOL
+# Ini adalah tempat MySQL menyimpan data dan indeks di memori.
+# Untuk VPS 2GB dengan banyak aplikasi, 128MB sudah cukup aman.
+innodb_buffer_pool_size = 128M
+
+# 3. BATASI KONEKSI BERSAMAAN
+# Setiap koneksi yang terbuka memakan RAM. Turunkan dari default (151) ke 50.
+max_connections = 50
+
+# 4. KECILKAN CACHE DAN BUFFER LAINNYA
+thread_cache_size = 8
+key_buffer_size = 16M
+tmp_table_size = 16M
+max_heap_table_size = 16M
+
+# 5. MATIKAN DNS LOOKUP
+# Menghemat memori dan mempercepat koneksi (wajib pakai IP, bukan nama host)
+skip-name-resolve

@@ -9,12 +9,17 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./custom-mysql.cnf:/etc/mysql/conf.d/custom-mysql.cnf:ro
     # BLOK HEALTHCHECK
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   redis:
     image: redis:7-alpine
