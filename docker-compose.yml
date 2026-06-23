@@ -60,3 +60,9 @@ services:
       - media_volume:/app/media:ro
     depends_on:
       - web
+
+volumes:
+  mysql_data:
+  static_volume:
+  media_volume:
+  redis_data:
