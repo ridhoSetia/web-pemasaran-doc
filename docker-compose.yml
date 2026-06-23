@@ -31,37 +31,32 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT:-8000}
+    # Ganti runserver dengan Gunicorn & jalankan collectstatic otomatis
+    command: sh -c "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
       - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    expose:
+      - "8000" # Tutup port publik, biarkan hanya Nginx yang bisa mengakses
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # TAMBAHKAN KONTAINER NGINX INI
+  nginx:
+    image: nginx:alpine
+    restart: always
     ports:
-      - "${DJANGO_PORT:-8000}:${DJANGO_PORT:-8000}"
-    env_file:
-      - .env
-    restart: always
-    # --- UBAH DEPENDS_ON MENJADI SEPERTI INI ---
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-
-  celery:
-    build: .
-    command: celery -A core worker -l info
+      - "8810:80" # VPS Port 8810 diarahkan ke Nginx Port 80
     volumes:
-      - .:/app
-    env_file:
-      - .env
-    restart: always
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-
-volumes:
-  mysql_data:
-  static_volume:
-  media_volume:
-  redis_data:
+      - web
