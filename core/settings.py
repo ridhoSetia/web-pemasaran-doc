@@ -87,7 +87,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.app',
+    'https://kelompoktanimelati.id',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -248,5 +248,5 @@ CSP_REPORT_ONLY = DEBUG
 # ============================================================================
 # CLOUDFLARE TURNSTILE CONFIGURATION
 # ============================================================================
-CLOUDFLARE_TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
-CLOUDFLARE_TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
+CLOUDFLARE_TURNSTILE_SITE_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SITE_KEY')
+CLOUDFLARE_TURNSTILE_SECRET_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SECRET_KEY')
