@@ -134,3 +134,24 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.kuantitas * self.harga_saat_beli
+
+class StoreSetting(models.Model):
+    """
+    Model Singleton untuk menyimpan konfigurasi utama website.
+    Hanya akan ada 1 baris data di database untuk pengaturan ini.
+    """
+    nama_toko = models.CharField(max_length=100, default="DOC Mart")
+    nomor_admin = models.CharField(max_length=20, default="0895704050703", help_text="Nomor WA untuk notifikasi pesanan (Fonnte)")
+    alamat_toko = models.TextField(blank=True, default="Jl. Peternakan No. 1, Desa Mulawarman")
+    
+    def save(self, *args, **kwargs):
+        self.pk = 1 # Memaksa sistem agar hanya menimpa baris pertama (ID=1)
+        super(StoreSetting, self).save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Pengaturan Website"

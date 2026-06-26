@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>{% block title %} DOC Mart Admin - Dashboard {% endblock %}</title>
+    <title>{% block title %} {{ toko.nama_toko }} Admin - Dashboard {% endblock %}</title>
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -127,7 +127,7 @@
               <span class="material-symbols-outlined text-on-secondary" aria-hidden="true">agriculture</span>
             </div>
             <div>
-              <h1 class="text-lg font-bold text-white leading-tight">DOC Mart Admin</h1>
+              <h1 class="text-lg font-bold text-white leading-tight">{{ toko.nama_toko }} Admin</h1>
               <p class="text-[10px] font-bold text-white/50 uppercase tracking-wider">Portal Manajemen</p>
             </div>
           </div>
@@ -193,13 +193,26 @@
           </div>
 
           <div class="flex items-center gap-2 md:gap-6">
-            <a href="#" aria-label="Pengaturan" class="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+            <a href="{% url 'store:admin_settings' %}" aria-label="Pengaturan" class="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
               <span class="material-symbols-outlined" aria-hidden="true">settings</span>
             </a>
-            <button type="button" aria-label="Notifikasi" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
-              <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-              <span class="absolute top-1 right-1 md:top-2 md:right-2 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-surface-container-lowest"></span>
-            </button>
+
+            <div class="relative">
+              <button id="notif-btn" type="button" aria-label="Notifikasi" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+                <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span id="notif-badge" class="absolute top-1 right-1 md:top-2 md:right-2 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface-container-lowest hidden"></span>
+              </button>
+
+              <div id="notif-dropdown" class="absolute right-0 mt-2 w-80 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant hidden z-50 overflow-hidden transform opacity-0 scale-95 transition-all origin-top-right">
+                <div class="bg-surface-variant px-4 py-3 border-b border-outline-variant flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-on-surface">Pesanan Menunggu</h3>
+                    <span id="notif-count-text" class="bg-outline-variant text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">0 Baru</span>
+                </div>
+                <div id="notif-list" class="max-h-80 overflow-y-auto bg-surface-container-lowest">
+                    </div>
+                <a href="{% url 'store:orders' %}?status=PRO" class="block text-center text-xs font-bold text-primary py-3 hover:bg-surface-container transition-colors border-t border-outline-variant bg-surface-container-lowest">Lihat Semua Pesanan</a>
+              </div>
+            </div>
           </div>
         </header>
 

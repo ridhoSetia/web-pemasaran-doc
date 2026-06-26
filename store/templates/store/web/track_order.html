@@ -1,33 +1,79 @@
-{% extends 'store/web/base_web.html' %}
+{% extends 'store/web/base_web.html' %} 
 
 {% block content %}
-<div class="max-w-md mx-auto px-4 py-20 min-h-[60vh]">
-    <div class="text-center mb-8">
-        <span class="material-symbols-outlined text-[64px] text-primary mb-2">search_insights</span>
-        <h1 class="font-h2 text-h2 text-on-surface">Lacak Pesanan</h1>
-        <p class="text-on-surface-variant mt-2">Masukkan detail untuk melihat status dan faktur.</p>
-    </div>
+<div class="max-w-5xl mx-auto px-4 py-12 min-h-[75vh] flex items-center justify-center">
+    
+    <!-- Wadah Utama: Split Card -->
+    <div class="w-full bg-surface-container-lowest rounded-3xl shadow-l border border-outline-variant/30 overflow-hidden flex flex-col md:flex-row">
 
-    <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant shadow-md">
-        <form method="POST" action="{% url 'store:track_order' %}" class="space-y-6">
-            {% csrf_token %}
+        <!-- Sisi Kiri: Panel Informasi & Estetika -->
+        <div class="w-full md:w-5/12 bg-primary p-8 md:p-12 text-white flex flex-col justify-between relative overflow-hidden">
+            <!-- Dekorasi Cahaya Latar (Glow) -->
+            <div class="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 mb-8 shadow-sm">
+                    <span class="material-symbols-outlined text-[32px] text-white">search_insights</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-h1 font-bold mb-4 leading-tight tracking-tight">Pantau<br>Pesanan Anda</h1>
+                <p class="text-white/80 text-sm leading-relaxed max-w-sm">
+                    Masukkan ID Pesanan dan Nomor WhatsApp untuk melihat detail faktur, status logistik pengiriman, dan riwayat transaksi Anda.
+                </p>
+            </div>
+
+            <!-- Kotak Bantuan (Tooltip) -->
+            <div class="relative z-10 mt-12 bg-black/15 backdrop-blur-sm p-5 rounded-2xl border border-white/10 shadow-inner">
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-secondary mt-0.5">lightbulb</span>
+                    <div>
+                        <h3 class="font-bold text-sm text-secondary-fixed mb-1">Lupa Order ID?</h3>
+                        <p class="text-xs text-white/75 leading-relaxed">
+                            Cek pesan konfirmasi yang dikirimkan oleh sistem ke WhatsApp Anda saat checkout (Format: <strong>DOC-XXXXXX</strong>).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sisi Kanan: Form Pelacakan -->
+        <div class="w-full md:w-7/12 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-surface-container-lowest">
             
-            <div>
-                <label class="block text-sm font-bold text-on-surface-variant mb-2">ID Pesanan (Order ID)</label>
-                <input type="text" name="order_id" required placeholder="Contoh: DOC-A1B2C3" 
-                       class="w-full rounded-xl border border-outline-variant px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary outline-none transition-all uppercase">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-on-surface mb-2">Detail Pelacakan</h2>
+                <p class="text-on-surface-variant text-sm">Silakan isi data berikut untuk verifikasi sistem keamanan.</p>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold text-on-surface-variant mb-2">Nomor WhatsApp</label>
-                <input type="tel" name="hp" required placeholder="Sesuai yang diisi saat checkout" 
-                       class="w-full rounded-xl border border-outline-variant px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary outline-none transition-all">
-            </div>
+            <form method="POST" action="{% url 'store:track_order' %}" class="space-y-6">
+                {% csrf_token %}
 
-            <button type="submit" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-container transition-colors shadow-md">
-                Lacak Sekarang
-            </button>
-        </form>
+                <!-- Input Order ID -->
+                <div>
+                    <label class="block text-sm font-bold text-on-surface mb-2">ID Pesanan (Order ID) <span class="text-error">*</span></label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">receipt_long</span>
+                        <input type="text" name="order_id" required placeholder="Contoh: DOC-A1B2C3"
+                                class="w-full bg-surface rounded-xl border border-outline-variant pl-12 pr-4 py-3.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all uppercase font-bold text-on-surface tracking-wide placeholder:text-on-surface-variant/50 placeholder:font-normal placeholder:tracking-normal">
+                    </div>
+                </div>
+
+                <!-- Input WhatsApp -->
+                <div>
+                    <label class="block text-sm font-bold text-on-surface mb-2">Nomor WhatsApp <span class="text-error">*</span></label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">call</span>
+                        <input type="tel" name="hp" required placeholder="Sesuai yang diisi saat checkout"
+                                class="w-full bg-surface rounded-xl border border-outline-variant pl-12 pr-4 py-3.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-on-surface font-medium placeholder:text-on-surface-variant/50">
+                    </div>
+                </div>
+
+                <!-- Tombol Lacak -->
+                <button type="submit" class="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl hover:bg-primary-container transition-all shadow-lg hover:shadow-xl flex justify-center items-center gap-2 mt-4 transform active:scale-[0.98]">
+                    <span class="material-symbols-outlined">radar</span> Lacak Sekarang
+                </button>
+            </form>
+            
+        </div>
     </div>
 </div>
 {% endblock %}

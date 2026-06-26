@@ -1,11 +1,10 @@
-
 // Form Submit — injeksi cart dari LocalStorage
 document.getElementById('checkoutForm').addEventListener('submit', function (e) {
     let cart = localStorage.getItem('doc_cart')
     if (!cart || cart === '[]') {
         e.preventDefault()
-        alert('Keranjang Anda kosong! Silakan belanja terlebih dahulu.')
-        window.location.href = "{% url 'store:market' %}"
+        showToast('Keranjang Anda kosong! Silakan belanja terlebih dahulu.', 'error');
+        window.location.href = "/market/" 
         return
     }
     document.getElementById('cart_data_input').value = cart
@@ -42,12 +41,11 @@ function updateTotalUI(ongkir) {
     document.getElementById('grandTotalDisplay').innerText = formatRupiah(grandTotal)
 }
 
-// Peta & Logistik — satu definisi bersih
+// Peta & Logistik
 let map, routingControl, userMarker
 const farmLat = -0.44875377355076096
 const farmLng = 117.09608147598206
 
-// Satu-satunya definisi togglePengiriman
 function togglePengiriman() {
     const isAntar = document.querySelector('input[name="pengiriman"]:checked').value === 'ANT'
     const mapContainer = document.getElementById('mapContainer')
@@ -73,7 +71,6 @@ function togglePengiriman() {
 
                 L.marker([farmLat, farmLng]).addTo(map).bindPopup('<b>Peternakan DOC Mart</b>').openPopup()
 
-                // Click listener didaftarkan SETELAH map siap
                 map.on('click', function (e) {
                     updateLokasiPengiriman(e.latlng.lat, e.latlng.lng)
                 })
@@ -82,13 +79,12 @@ function togglePengiriman() {
     } else {
         mapContainer.classList.add('hidden')
         alamatInput.required = false
-        updateTotalUI(0) // Reset ongkir saat pilih Ambil Sendiri
+        updateTotalUI(0) 
     }
 }
 
-// routingControl.on() ada DI DALAM fungsi ini, bukan di luar
 function updateLokasiPengiriman(lat, lng) {
-    if (!map) return // Guard: abaikan jika peta belum siap
+    if (!map) return 
 
     document.getElementById('latInput').value = lat
     document.getElementById('lngInput').value = lng
@@ -101,7 +97,6 @@ function updateLokasiPengiriman(lat, lng) {
         routingControl = null
     }
 
-    // .addTo(map) dichain langsung — routingControl langsung valid
     routingControl = L.Routing.control({
         waypoints: [L.latLng(farmLat, farmLng), L.latLng(lat, lng)],
         routeWhileDragging: false,
@@ -114,7 +109,7 @@ function updateLokasiPengiriman(lat, lng) {
         const distanceKm = (e.routes[0].summary.totalDistance / 1000).toFixed(2)
         document.getElementById('jarakInput').value = distanceKm
 
-        const biayaOngkir = Math.round(distanceKm * 5000) // Rp5.000/km
+        const biayaOngkir = Math.round(distanceKm * 5000) 
         updateTotalUI(biayaOngkir)
 
         const infoJarak = document.getElementById('infoJarak')
@@ -135,11 +130,10 @@ function updateLokasiPengiriman(lat, lng) {
     })
 }
 
-// Geocoding pencarian alamat
 function cariLokasi() {
     const query = document.getElementById('searchAlamat').value
     if (!query) {
-        alert('Silakan masukkan nama jalan atau daerah terlebih dahulu.')
+        showToast('Silakan masukkan nama jalan atau daerah terlebih dahulu.', 'error');
         return
     }
 
@@ -157,12 +151,12 @@ function cariLokasi() {
                 map.setView([lat, lng], 15)
                 updateLokasiPengiriman(lat, lng)
             } else {
-                alert('Lokasi tidak ditemukan. Coba gunakan nama kecamatan atau kota.')
+                showToast('Lokasi tidak ditemukan. Coba gunakan nama kecamatan atau kota.', 'error');
             }
         })
         .catch((err) => {
             console.error('Error Geocoding:', err)
-            alert('Gagal menghubungi server pencarian peta.')
+            showToast('Gagal menghubungi server pencarian peta.', 'error');
         })
         .finally(() => {
             btnCari.innerHTML = originalText

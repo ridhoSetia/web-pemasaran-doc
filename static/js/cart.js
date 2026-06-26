@@ -15,13 +15,13 @@ function renderCart() {
     let totalItems = 0;
 
     if (cart.length === 0) {
-        emptyMessage.classList.remove('hidden');
-        summaryCard.classList.add('hidden');
+        if (emptyMessage) emptyMessage.classList.remove('hidden');
+        if (summaryCard) summaryCard.classList.add('hidden');
         return;
     }
 
-    emptyMessage.classList.add('hidden');
-    summaryCard.classList.remove('hidden');
+    if (emptyMessage) emptyMessage.classList.add('hidden');
+    if (summaryCard) summaryCard.classList.remove('hidden');
 
     cart.forEach((item, index) => {
         const subtotal = item.harga * item.qty;
@@ -61,11 +61,12 @@ function renderCart() {
             `;
     });
 
-    // Update Ringkasan
-    document.getElementById('summary-items').innerText = totalItems;
-    document.getElementById('summary-total').innerText = formatRupiah(grandTotal);
+    const summaryItemsEl = document.getElementById('summary-items');
+    if (summaryItemsEl) summaryItemsEl.innerText = totalItems;
+    
+    const summaryTotalEl = document.getElementById('summary-total');
+    if (summaryTotalEl) summaryTotalEl.innerText = formatRupiah(grandTotal);
 
-    // Update badge di navbar (panggil fungsi dari base_web)
     if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 
@@ -78,7 +79,7 @@ function updateQty(index, change) {
         localStorage.setItem('doc_cart', JSON.stringify(cart));
         renderCart();
     } else if (newQty > cart[index].max_stok) {
-        alert('Melebihi batas stok maksimal yang tersedia!');
+        showToast('Melebihi batas stok maksimal yang tersedia!', 'error');
     }
 }
 
@@ -86,30 +87,27 @@ function setQty(index, newValue) {
     let cart = JSON.parse(localStorage.getItem('doc_cart'));
     let parsedValue = parseInt(newValue);
 
-    // Jika input kosong, bukan angka, atau kurang dari 1, setel ke 1
     if (isNaN(parsedValue) || parsedValue < 1) {
         parsedValue = 1;
     } 
-    // Jika melebihi stok maksimal
     else if (parsedValue > cart[index].max_stok) {
-        alert('Melebihi batas stok maksimal yang tersedia!');
+        showToast('Melebihi batas stok maksimal yang tersedia!', 'error');
         parsedValue = cart[index].max_stok;
     }
 
-    // Simpan perubahan dan render ulang layar
     cart[index].qty = parsedValue;
     localStorage.setItem('doc_cart', JSON.stringify(cart));
     renderCart();
 }
 
 function removeItem(index) {
-    if (confirm('Hapus item ini dari keranjang?')) {
+    if (confirm('Hapus produk ini dari keranjang?')) {
         let cart = JSON.parse(localStorage.getItem('doc_cart'));
-        cart.splice(index, 1); // Hapus 1 item di posisi index
+        cart.splice(index, 1); 
         localStorage.setItem('doc_cart', JSON.stringify(cart));
         renderCart();
+        showToast('Produk berhasil dihapus.', 'success');
     }
 }
 
-// Jalankan saat pertama kali dimuat
 document.addEventListener('DOMContentLoaded', renderCart);

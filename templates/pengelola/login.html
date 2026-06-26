@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOC Mart Admin - Login</title>
+    <title>{{ toko.nama_toko }} Admin - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;700&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
                     <span class="material-symbols-outlined text-[36px] text-white">agriculture</span>
                 </div>
                 <h1 class="text-4xl xl:text-5xl font-extrabold leading-tight mb-6 tracking-tight">
-                    Halo Admin<br>DOC Mart! 👋
+                    Halo Admin<br>{{ toko.nama_toko }}
                 </h1>
                 <p class="text-[#daffde] text-lg leading-relaxed max-w-m font-medium">
                     Kelola ketersediaan produk ternak unggul, pantau pesanan pelanggan, dan optimalkan distribusi dengan satu platform terintegrasi.
@@ -40,7 +40,7 @@
 
             <div class="relative z-10">
                 <p class="text-[10px] font-bold tracking-widest uppercase text-[#a1d494]">
-                    © 2026 DOC Mart System. All rights reserved.
+                    © 2026 {{ toko.nama_toko }} System. All rights reserved.
                 </p>
             </div>
         </div>

@@ -40,3 +40,79 @@ toasts.forEach((toast, index) => {
     ); // Tambahan jeda jika ada lebih dari 1 pesan
 });
 });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const notifBtn = document.getElementById('notif-btn');
+    const notifDropdown = document.getElementById('notif-dropdown');
+    const notifBadge = document.getElementById('notif-badge');
+    const notifCountText = document.getElementById('notif-count-text');
+    const notifList = document.getElementById('notif-list');
+
+    // Peringatan jika HTML lonceng belum terpasang dengan benar
+    if (!notifBtn || !notifDropdown) {
+        console.error("Tombol Lonceng tidak ditemukan! Pastikan HTML lonceng sudah menggunakan id='notif-btn'.");
+        return;
+    }
+
+    function fetchNotifs() {
+        fetch("{% url 'store:api_pending_orders' %}")
+        .then(res => {
+            if (!res.ok) throw new Error("Gagal mengambil data dari API.");
+            return res.json();
+        })
+        .then(data => {
+            if(data.count > 0) {
+                notifBadge.classList.remove('hidden');
+                notifCountText.innerText = data.count + ' Baru';
+                notifCountText.classList.replace('bg-outline-variant', 'bg-error'); // Warnai merah
+                
+                let html = '';
+                data.orders.forEach(o => {
+                    html += `
+                    <a href="/pengelola/orders/?q=${o.id}" class="block p-4 border-b border-outline-variant hover:bg-surface-container transition-colors">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-bold text-xs text-primary">${o.id}</span>
+                            <span class="text-[10px] text-on-surface-variant font-semibold">${o.waktu}</span>
+                        </div>
+                        <p class="text-sm font-semibold text-on-surface truncate">${o.nama}</p>
+                        <p class="text-xs text-on-surface-variant mt-1">Total: <span class="font-bold text-error">${o.total}</span></p>
+                    </a>
+                    `;
+                });
+                notifList.innerHTML = html;
+            } else {
+                notifBadge.classList.add('hidden');
+                notifCountText.innerText = '0 Baru';
+                notifCountText.classList.replace('bg-error', 'bg-outline-variant'); // Warnai abu-abu
+                notifList.innerHTML = '<div class="p-6 text-center text-sm font-medium text-on-surface-variant">Hore! Semua pesanan sudah diproses.</div>';
+            }
+        })
+        .catch(err => {
+            console.error("Error Notifikasi:", err);
+            notifList.innerHTML = '<div class="p-4 text-center text-xs text-error font-medium">Gagal memuat data pesanan. Periksa koneksi atau log server.</div>';
+        });
+    }
+
+    fetchNotifs(); // Muat data pertama kali
+    setInterval(fetchNotifs, 120000); // Auto-refresh setiap 2 menit
+
+    notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (notifDropdown.classList.contains('hidden')) {
+            notifDropdown.classList.remove('hidden');
+            setTimeout(() => notifDropdown.classList.remove('opacity-0', 'scale-95'), 10);
+            fetchNotifs(); // Segarkan isi saat dibuka
+        } else {
+            notifDropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => notifDropdown.classList.add('hidden'), 150);
+        }
+    });
+
+    // Tutup otomatis jika klik di luar area
+    document.addEventListener('click', function(e) {
+        if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+            notifDropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => notifDropdown.classList.add('hidden'), 150);
+        }
+    });
+});

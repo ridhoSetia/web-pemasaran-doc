@@ -1,111 +1,224 @@
 {% extends 'store/web/base_web.html' %}
 
 {% block content %}
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="font-h2 text-h2 text-on-surface mb-8">Selesaikan Pesanan Anda</h1>
-
-    <form action="{% url 'store:checkout' %}" method="POST" enctype="multipart/form-data" id="checkoutForm" class="space-y-8">
-      {% csrf_token %}
-      <input type="hidden" name="cart_data" id="cart_data_input" />
-
-      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
-        <h2 class="font-bold text-lg border-b pb-2">Informasi Kontak</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-bold mb-1">Nama Lengkap</label>
-            <input type="text" name="nama" required class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary" />
-          </div>
-          <div>
-            <label class="block text-sm font-bold mb-1">Nomor WhatsApp Aktif</label>
-            <input type="tel" name="hp" required class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary" />
-          </div>
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex items-center gap-3 mb-8 border-b border-outline-variant pb-4">
+        <div>
+            <h1 class="font-h2 text-h2 text-on-surface">Selesaikan Pesanan</h1>
+            <p class="text-on-surface-variant text-sm mt-1">Lengkapi data di bawah ini untuk memproses pesanan.</p>
         </div>
-      </div>
+    </div>
 
-      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
-        <h2 class="font-bold text-lg border-b pb-2">Opsi Pengiriman</h2>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="pengiriman" value="AMB" checked onchange="togglePengiriman()" class="text-primary focus:ring-primary" />
-            <span>Ambil di Peternakan</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="pengiriman" value="ANT" onchange="togglePengiriman()" class="text-primary focus:ring-primary" />
-            <span>Diantar ke Lokasi (Gunakan Peta)</span>
-          </label>
-        </div>
+    <form action="{% url 'store:checkout' %}" method="POST" enctype="multipart/form-data" id="checkoutForm" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="cart_data" id="cart_data_input" />
 
-        <div id="mapContainer" class="hidden space-y-4 pt-4 border-t">
-          <p class="text-sm text-on-surface-variant font-medium">Cari alamat Anda atau tandai langsung pada peta di bawah (Otomatis menggambar rute).</p>
-
-          <div class="flex gap-2">
-            <div class="relative flex-1">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
-              <input type="text" id="searchAlamat" placeholder="Ketik nama jalan, kecamatan, atau kota..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" />
+          <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+            <div class="bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-4 border-b border-primary/10 flex items-center gap-3">
+                <div class="bg-primary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">badge</span>
+                </div>
+                <h2 class="font-bold text-lg text-primary">Informasi Kontak & Keamanan</h2>
             </div>
-            <button type="button" onclick="cariLokasi()" class="bg-surface-variant text-on-surface-variant px-6 py-2.5 rounded-lg font-bold hover:bg-outline-variant transition-colors text-sm shadow-sm">Cari</button>
-          </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-on-surface mb-2">Nama Lengkap (Sesuai KTP) <span class="text-error">*</span></label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50">person</span>
+                        <input type="text" name="nama" required placeholder="Cth: Budi Santoso" 
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                    </div>
+                </div>
 
-          <div id="map" class="h-80 w-full rounded-xl border border-outline-variant z-10 shadow-inner"></div>
+                <div>
+                    <label for="hp" class="block text-sm font-bold text-on-surface mb-2">Nomor WhatsApp Aktif <span class="text-error">*</span></label>
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50">call</span>
+                            <input type="text" id="hp" name="hp" required placeholder="08123456789" 
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                        </div>
+                        <button type="button" id="btn-otp" onclick="requestOTP()" 
+                            class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-sm whitespace-nowrap flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[18px]">send_to_mobile</span> OTP
+                        </button>
+                    </div>
+                    <p id="otp-message" class="text-xs text-on-surface-variant mt-2 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">info</span> Kami akan mengirim kode verifikasi ke nomor ini.
+                    </p>
+                </div>
 
-          <input type="hidden" name="lat" id="latInput" />
-          <input type="hidden" name="lng" id="lngInput" />
-          <input type="hidden" name="jarak_km" id="jarakInput" />
-          <div id="infoJarak" class="hidden text-sm font-bold text-primary bg-primary/10 p-3 rounded-lg flex items-center gap-2 mt-2"></div>
-
-          <div>
-            <label class="block text-sm font-bold mb-1">Detail Alamat Lengkap (Patokan)</label>
-            <textarea name="alamat" id="alamatInput" rows="3" placeholder="Contoh: Rumah cat hijau, pagar hitam, depan masjid..." class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none p-3 text-sm transition-all"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
-        <h2 class="font-bold text-lg border-b pb-2">Pembayaran</h2>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="pembayaran" value="COD" checked onchange="togglePembayaran()" class="text-primary focus:ring-primary" />
-            <span>Bayar di Tempat (COD)</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="pembayaran" value="TF" onchange="togglePembayaran()" class="text-primary focus:ring-primary" />
-            <span>Transfer Bank</span>
-          </label>
+                <div class="md:col-span-2 bg-surface-container-low p-5 rounded-xl border border-outline-variant/50">
+                    <label for="otp" class="block text-sm font-bold text-on-surface text-center mb-3">Masukkan 6-Digit Kode OTP <span class="text-error">*</span></label>
+                    <input type="text" id="otp" name="otp" required maxlength="6" placeholder="• • • • • •" 
+                        class="block w-full max-w-xs mx-auto rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 text-center tracking-[0.5em] text-2xl font-mono font-bold py-3 outline-none transition-all placeholder:text-outline-variant">
+                </div>
+            </div>
         </div>
 
-        <div id="transferContainer" class="hidden space-y-4 pt-4 border-t">
-          <div class="bg-primary/10 p-4 rounded-lg text-sm text-primary font-medium">
-            Silakan transfer ke rekening: <strong>BCA 123456789 a.n. Peternakan Mandiri</strong>
-          </div>
-          <div>
-            <label class="block text-sm font-bold mb-1">Unggah Bukti Transfer</label>
-            <input type="file" name="bukti_pembayaran" id="buktiInput" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-          </div>
+          <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+            <div class="bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-4 border-b border-primary/10 flex items-center gap-3">
+                <div class="bg-primary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">local_shipping</span>
+                </div>
+                <h2 class="font-bold text-lg text-primary">Metode Pengiriman</h2>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="relative flex cursor-pointer rounded-xl border border-outline-variant bg-surface p-4 shadow-sm hover:border-primary focus-within:ring-1 focus-within:ring-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+                        <input type="radio" name="pengiriman" value="AMB" checked onchange="togglePengiriman()" class="peer sr-only" />
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="bg-surface-variant p-2 rounded-lg text-on-surface-variant peer-checked:bg-primary peer-checked:text-on-primary transition-colors">
+                                <span class="material-symbols-outlined">warehouse</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-on-surface">Ambil di Kandang</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Gratis • Datang langsung ke lokasi</p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+                        </div>
+                    </label>
+
+                    <label class="relative flex cursor-pointer rounded-xl border border-outline-variant bg-surface p-4 shadow-sm hover:border-primary focus-within:ring-1 focus-within:ring-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+                        <input type="radio" name="pengiriman" value="ANT" onchange="togglePengiriman()" class="peer sr-only" />
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="bg-surface-variant p-2 rounded-lg text-on-surface-variant peer-checked:bg-primary peer-checked:text-on-primary transition-colors">
+                                <span class="material-symbols-outlined">route</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-on-surface">Diantar ke Lokasi</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Rp5.000/km • Armada DOC Mart</p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="mapContainer" class="hidden space-y-4 pt-4 border-t border-outline-variant border-dashed">
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                            <input type="text" id="searchAlamat" placeholder="Cari nama jalan, desa, atau patokan terdekat..." 
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" />
+                        </div>
+                        <button type="button" onclick="cariLokasi()" 
+                            class="bg-surface-variant hover:bg-outline-variant text-on-surface-variant px-6 py-3 rounded-xl font-bold text-sm shadow-sm transition-colors">
+                            Cari Peta
+                        </button>
+                    </div>
+
+                    <div id="map" class="h-80 w-full rounded-xl border border-outline-variant z-10 shadow-inner"></div>
+
+                    <input type="hidden" name="lat" id="latInput" />
+                    <input type="hidden" name="lng" id="lngInput" />
+                    <input type="hidden" name="jarak_km" id="jarakInput" />
+                    
+                    <div id="infoJarak" class="hidden text-sm font-bold text-primary-container bg-primary p-4 rounded-xl flex items-center gap-3 shadow-sm"></div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-on-surface mb-2">Detail Alamat / Patokan Pengiriman <span class="text-error">*</span></label>
+                        <textarea name="alamat" id="alamatInput" rows="3" placeholder="Contoh: Rumah cat hijau, pagar hitam, posisi depan masjid An-Nur..." 
+                            class="w-full rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none p-4 text-sm transition-all"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
-        <h2 class="font-bold text-lg border-b pb-2">Ringkasan Pembayaran</h2>
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-on-surface-variant">Subtotal Produk:</span>
-          <span id="subtotalDisplay" class="font-bold text-on-surface">Rp0</span>
+
+          <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+            <div class="bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-4 border-b border-primary/10 flex items-center gap-3">
+                <div class="bg-primary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+                </div>
+                <h2 class="font-bold text-lg text-primary">Metode Pembayaran</h2>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="relative flex cursor-pointer rounded-xl border border-outline-variant bg-surface p-4 shadow-sm hover:border-primary focus-within:ring-1 focus-within:ring-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+                        <input type="radio" name="pembayaran" value="COD" checked onchange="togglePembayaran()" class="peer sr-only" />
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="bg-surface-variant p-2 rounded-lg text-on-surface-variant peer-checked:bg-primary peer-checked:text-on-primary transition-colors">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-on-surface">Bayar di Tempat (COD)</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Bayar tunai saat DOC diterima</p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+                        </div>
+                    </label>
+
+                    <label class="relative flex cursor-pointer rounded-xl border border-outline-variant bg-surface p-4 shadow-sm hover:border-primary focus-within:ring-1 focus-within:ring-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all">
+                        <input type="radio" name="pembayaran" value="TF" onchange="togglePembayaran()" class="peer sr-only" />
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="bg-surface-variant p-2 rounded-lg text-on-surface-variant peer-checked:bg-primary peer-checked:text-on-primary transition-colors">
+                                <span class="material-symbols-outlined">account_balance</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-on-surface">Transfer Bank</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Verifikasi manual via Admin</p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="transferContainer" class="hidden space-y-4 pt-4 border-t border-outline-variant border-dashed">
+                    <div class="bg-secondary-container text-on-secondary-container p-4 rounded-xl text-sm flex gap-3 items-start">
+                        <span class="material-symbols-outlined mt-0.5">info</span>
+                        <div>
+                            <p class="font-medium mb-1">Silakan transfer sesuai Grand Total ke rekening berikut:</p>
+                            <p class="font-bold text-lg">BCA 1234 5678 90</p>
+                            <p class="text-xs opacity-80">a.n. DOC Mart Official</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-on-surface mb-2">Unggah Bukti Transfer <span class="text-error">*</span></label>
+                        <input type="file" name="bukti_pembayaran" id="buktiInput" accept="image/jpeg, image/png, image/webp" 
+                            class="block w-full text-sm text-on-surface-variant
+                            file:mr-4 file:py-3 file:px-6
+                            file:rounded-xl file:border-0
+                            file:text-sm file:font-bold
+                            file:bg-primary/10 file:text-primary
+                            hover:file:bg-primary/20 file:cursor-pointer cursor-pointer border border-outline-variant rounded-xl border-dashed p-2" />
+                        <p class="text-xs text-on-surface-variant mt-2">Format: JPG, PNG, WEBP (Maksimal 5MB)</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-on-surface-variant">Ongkos Kirim (Rp5.000/km):</span>
-          <span id="ongkirDisplay" class="font-bold text-on-surface">Rp0</span>
+
+        <div class="bg-surface-container-low rounded-2xl border border-outline-variant shadow-sm p-6 space-y-4">
+            <h2 class="font-bold text-lg text-on-surface mb-4">Ringkasan Pembayaran</h2>
+            
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-on-surface-variant">Subtotal Produk</span>
+                <span id="subtotalDisplay" class="font-bold text-on-surface">Rp0</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-on-surface-variant">Ongkos Kirim</span>
+                <span id="ongkirDisplay" class="font-bold text-on-surface">Rp0</span>
+            </div>
+            
+            <div class="border-t border-outline-variant border-dashed pt-4 mt-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-on-surface text-lg">Grand Total</span>
+                    <span id="grandTotalDisplay" class="font-bold text-primary text-2xl">Rp0</span>
+                </div>
+            </div>
         </div>
-        <div class="flex justify-between items-center text-lg border-t pt-4">
-          <span class="font-bold text-on-surface">Total Keseluruhan:</span>
-          <span id="grandTotalDisplay" class="font-bold text-primary text-xl">Rp0</span>
-        </div>
-      </div>
-      <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-container transition-all">PROSES PESANAN SEKARANG</button>
+
+        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-bold text-lg py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2">
+            <span class="material-symbols-outlined">lock</span> PROSES PESANAN SEKARANG
+        </button>
     </form>
-  </div>
+</div>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 {% load static %}
 <script src="{% static 'js/checkout.js' %}"></script>

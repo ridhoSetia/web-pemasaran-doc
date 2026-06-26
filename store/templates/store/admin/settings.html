@@ -1,0 +1,132 @@
+{% extends 'store/admin/base.html' %} 
+{% block title %} Pengaturan - DOC Mart {% endblock %} 
+{% block header_title %} Pengaturan Sistem {% endblock %} 
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+  <div class="max-w-5xl mx-auto space-y-8">
+    
+    <!-- 1. Form Pengaturan Informasi Website -->
+    <div class="bg-surface-container-lowest border border-outline-variant/50 rounded-2xl shadow-sm overflow-hidden">
+        <div class="bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-4 border-b border-primary/10 flex items-center gap-3">
+            <div class="bg-primary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">storefront</span>
+            </div>
+            <h3 class="font-bold text-lg text-primary">Informasi & Kontak Website</h3>
+        </div>
+
+      <form method="POST" class="p-6 md:p-8 space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="save_web_settings" value="1">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nama Toko/Peternakan</label>
+                <input type="text" name="nama_toko" value="{{ setting.nama_toko }}" required class="w-full bg-surface border border-outline-variant/50 rounded-xl px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+            </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nomor WA Notifikasi (Fonnte)</label>
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors text-[20px]">call</span>
+                    <input type="text" name="nomor_admin" value="{{ setting.nomor_admin }}" required class="w-full bg-surface border border-outline-variant/50 rounded-xl pl-11 pr-4 py-3 text-sm font-bold text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all tracking-wide">
+                </div>
+            </div>
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Alamat Pengiriman/Peternakan</label>
+            <textarea name="alamat_toko" rows="3" required class="w-full bg-surface border border-outline-variant/50 rounded-xl px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.alamat_toko }}</textarea>
+        </div>
+        <div class="pt-4 flex justify-end border-t border-outline-variant/30 mt-2">
+            <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[20px]">save</span> Simpan Informasi
+            </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. Form Keamanan (Ubah Password) - Desain Split Baru -->
+    <div class="bg-surface-container-lowest border border-outline-variant/50 rounded-2xl shadow-sm overflow-hidden">
+        <!-- Header Keamanan -->
+        <div class="bg-gradient-to-r from-tertiary/15 via-tertiary/5 to-transparent px-6 py-4 border-b border-tertiary/10 flex items-center gap-3">
+            <div class="bg-tertiary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">security</span>
+            </div>
+            <h3 class="font-bold text-lg text-tertiary">Keamanan Administrator</h3>
+        </div>
+
+        <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
+            <!-- Sisi Kiri: Edukasi/Info Keamanan -->
+            <div class="w-full md:w-5/12 space-y-4">
+                <div class="bg-surface-variant/30 p-6 rounded-2xl border border-outline-variant/50 h-full flex flex-col justify-center relative overflow-hidden">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-outline-variant/30 relative z-10">
+                        <span class="material-symbols-outlined text-tertiary text-[28px]">admin_panel_settings</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-on-surface mb-2 relative z-10">Akses Terbatas</h4>
+                    <p class="text-sm text-on-surface-variant leading-relaxed mb-6 relative z-10">
+                        Kata sandi Anda adalah kunci utama ke seluruh data pesanan, inventaris, dan pelanggan DOC Mart.
+                    </p>
+                    <div class="space-y-3 relative z-10">
+                        <div class="flex items-center gap-3 text-sm font-medium text-on-surface-variant">
+                            <span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+                            <span>Minimal 8 karakter</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm font-medium text-on-surface-variant">
+                            <span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+                            <span>Kombinasi huruf & angka</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm font-medium text-on-surface-variant">
+                            <span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+                            <span>Tidak mudah ditebak</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sisi Kanan: Form Input Dinamis -->
+            <div class="w-full md:w-7/12 flex flex-col justify-center">
+                <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="save_password" value="1">
+                
+                <!-- 
+                    Magic Tailwind: Kita menggunakan arbritary variants [&_input] 
+                    untuk menata tag <input> bawaan dari Django {{ field }} secara otomatis.
+                    Sedangkan [&_ul] digunakan untuk merapikan teks bantuan (Syarat Password).
+                -->
+                <div class="space-y-5 
+                            [&_input]:w-full [&_input]:bg-surface [&_input]:border [&_input]:border-outline-variant/50 
+                            [&_input]:rounded-xl [&_input]:px-4 [&_input]:py-3.5 [&_input]:text-sm [&_input]:font-medium 
+                            [&_input]:text-on-surface [&_input]:focus:border-tertiary [&_input]:focus:ring-2 
+                            [&_input]:focus:ring-tertiary/20 [&_input]:outline-none [&_input]:transition-all
+                            [&_ul]:text-[11px] [&_ul]:text-on-surface-variant [&_ul]:mt-1.5 [&_ul]:pl-4 [&_ul]:list-disc [&_ul]:space-y-0.5">
+                    
+                    {% for field in password_form %}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">{{ field.label }}</label>
+                            
+                            <div class="relative">
+                                {{ field }}
+                            </div>
+
+                            {% if field.errors %}
+                                <p class="text-xs font-bold text-error flex items-center gap-1 mt-1 bg-error/10 p-2 rounded-lg border border-error/20">
+                                    <span class="material-symbols-outlined text-[14px]">error</span> {{ field.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="pt-6 mt-4 border-t border-outline-variant/30 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-tertiary hover:bg-tertiary-container text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2 transform active:scale-[0.98]">
+                        <span class="material-symbols-outlined text-[20px]">key</span> Perbarui Password
+                    </button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

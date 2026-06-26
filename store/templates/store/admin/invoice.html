@@ -8,47 +8,82 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "primary":                   "#154212",
+              "on-primary":                "#FFFFFF",
+              "primary-container":         "#2D5A27",
+              "on-primary-container":      "#9DD090",
+              "secondary":                 "#D4A017",
+              "on-secondary":              "#3B2900",
+              "secondary-container":       "#FEF3C7",
+              "on-secondary-container":    "#7C5A00",
+              "background":                "#FAF7F0",
+              "on-background":             "#161A14",
+              "surface":                   "#F5F1E8",
+              "on-surface":                "#161A14",
+              "surface-variant":           "#EDE8DD",
+              "on-surface-variant":        "#3D4B3A",
+              "surface-container-lowest":  "#FFFFFF",
+              "surface-container-low":     "#F5F1E8",
+              "outline-variant":           "#C8BFB0",
+              "error":                     "#BA1A1A",
+              "on-error":                  "#FFFFFF",
+              "error-container":           "#FFDAD6",
+              "on-error-container":        "#93000A",
+            },
+            fontFamily: {
+              sans: ['Open Sans', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/invoice.css' %}">
-
     <script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 p-4 md:p-8">
+<body class="bg-background text-on-background p-4 md:p-8 font-sans antialiased">
 
     <div class="max-w-4xl mx-auto mb-6 flex flex-wrap justify-end gap-3 md:gap-4 no-print">
         {% if is_public %}
-            <a href="{% url 'store:market' %}" class="w-full sm:w-auto px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center justify-center gap-2 text-sm">
+            <a href="{% url 'store:market' %}" class="w-full sm:w-auto px-6 py-2.5 border border-outline-variant bg-surface-container-lowest rounded-xl font-bold hover:bg-surface-variant transition-all shadow-sm flex items-center justify-center gap-2 text-sm text-on-surface">
                 <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali Belanja
             </a>
         {% else %}
-            <button onclick="window.close()" class="w-full sm:w-auto px-6 py-2 border border-gray-400 bg-white rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition flex items-center justify-center gap-2 text-sm">
+            <button onclick="window.close()" class="w-full sm:w-auto px-6 py-2.5 border border-outline-variant bg-surface-container-lowest rounded-xl font-bold hover:bg-surface-variant transition-all shadow-sm flex items-center justify-center gap-2 text-sm text-on-surface">
                 <span class="material-symbols-outlined text-[18px]">close</span> Tutup Tab
             </button>
         {% endif %}
         
-        <button onclick="downloadDirectPDF()" class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow flex items-center justify-center gap-2 text-sm">
+        <button onclick="downloadDirectPDF()" class="w-full sm:w-auto px-6 py-2.5 bg-secondary text-on-secondary rounded-xl font-bold hover:bg-[#b58812] transition-all shadow-md flex items-center justify-center gap-2 text-sm">
             <span class="material-symbols-outlined text-[18px]">download</span> Download PDF
         </button>
         
-        <button onclick="window.print()" class="w-full sm:w-auto px-6 py-2 bg-green-700 text-white rounded-lg font-bold hover:bg-green-800 transition shadow flex items-center justify-center gap-2 text-sm">
+        <button onclick="window.print()" class="w-full sm:w-auto px-6 py-2.5 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary-container hover:text-on-primary-container transition-all shadow-md flex items-center justify-center gap-2 text-sm">
             <span class="material-symbols-outlined text-[18px]">print</span> Cetak Faktur
         </button>
     </div>
 
-    <div id="invoice-print-area" class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-md print-shadow print-border relative overflow-hidden">
+    <div id="invoice-print-area" class="max-w-4xl mx-auto bg-surface-container-lowest p-8 md:p-12 rounded-3xl shadow-xl print-shadow print-border relative overflow-hidden border border-outline-variant/30">
 
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-8 mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-outline-variant/50 pb-8 mb-8">
             <div>
-                <h1 class="text-3xl font-extrabold text-green-800 tracking-tight">DOC Mart</h1>
-                <p class="text-gray-500 text-sm mt-1">Sistem Peternakan & Distribusi Ayam Kualitas Unggul</p>
+                <h1 class="text-4xl font-black text-primary tracking-tight">{{ toko.nama_toko }}</h1>
+                <p class="text-on-surface-variant text-sm mt-1 font-medium">Sistem Peternakan & Distribusi Ayam Kualitas Unggul</p>
             </div>
-            <div class="mt-4 md:mt-0 text-left md:text-right">
-                <h2 class="text-2xl font-bold text-gray-800">FAKTUR</h2>
-                <p class="text-gray-500 font-medium">#{{ order.order_id }}</p>
-                <div class="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full 
-                    {% if order.status == 'PRO' %} bg-yellow-100 text-yellow-800
-                    {% elif order.status == 'SLS' %} bg-green-100 text-green-800
-                    {% else %} bg-red-100 text-red-800 {% endif %}">
+            <div class="mt-6 md:mt-0 text-left md:text-right">
+                <h2 class="text-3xl font-bold text-on-surface tracking-wider">FAKTUR</h2>
+                <p class="text-on-surface-variant font-bold tracking-widest mt-1">#{{ order.order_id }}</p>
+                <div class="inline-block mt-3 px-4 py-1.5 text-xs font-bold rounded-full shadow-sm
+                    {% if order.status == 'PRO' %} bg-secondary-container text-on-secondary-container border border-secondary/20
+                    {% elif order.status == 'SLS' %} bg-primary text-on-primary border border-primary/20
+                    {% else %} bg-error-container text-on-error-container border border-error/20 {% endif %}">
                     Status: {{ order.get_status_display }}
                 </div>
             </div>
@@ -56,37 +91,37 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Diterbitkan Untuk:</h3>
-                <p class="text-lg font-bold text-gray-800">{{ order.nama_pembeli }}</p>
-                <p class="text-gray-600 flex items-center gap-1 mt-1">
-                    <span class="material-symbols-outlined text-[16px]">call</span> {{ order.nomor_hp }}
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Diterbitkan Untuk:</h3>
+                <p class="text-xl font-bold text-on-surface mb-2">{{ order.nama_pembeli }}</p>
+                <p class="text-on-surface-variant flex items-center gap-2 mt-1 text-sm font-medium">
+                    <span class="material-symbols-outlined text-[18px] text-primary">call</span> {{ order.nomor_hp }}
                 </p>
-                <p class="text-gray-600 flex items-start gap-1 mt-1">
-                    <span class="material-symbols-outlined text-[16px] mt-0.5">location_on</span> 
-                    <span class="max-w-[250px]">{{ order.alamat|default:"-" }}</span>
+                <p class="text-on-surface-variant flex items-start gap-2 mt-2 text-sm font-medium">
+                    <span class="material-symbols-outlined text-[18px] text-primary mt-0.5">location_on</span> 
+                    <span class="max-w-[280px] leading-relaxed">{{ order.alamat|default:"-" }}</span>
                 </p>
             </div>
             
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Detail Transaksi:</h3>
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Tanggal Order</span>
-                        <span class="font-semibold">{{ order.order_date|date:"d M Y, H:i" }}</span>
+            <div class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/50 shadow-inner">
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Detail Transaksi:</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-on-surface-variant">Tanggal Order</span>
+                        <span class="font-bold text-on-surface">{{ order.order_date|date:"d M Y, H:i" }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Metode Pengiriman</span>
-                        <span class="font-semibold text-green-700">{{ order.get_metode_pengiriman_display }}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-on-surface-variant">Metode Pengiriman</span>
+                        <span class="font-bold text-primary">{{ order.get_metode_pengiriman_display }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Metode Pembayaran</span>
-                        <span class="font-semibold">{{ order.get_metode_pembayaran_display }}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-on-surface-variant">Metode Pembayaran</span>
+                        <span class="font-bold text-on-surface">{{ order.get_metode_pembayaran_display }}</span>
                     </div>
                     
                     {% if order.bukti_pembayaran %}
-                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
-                        <span class="text-gray-500 font-medium">Bukti Transfer</span>
-                        <button onclick="openModal()" class="no-print flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-2 py-1 rounded-md">
+                    <div class="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant/30">
+                        <span class="text-on-surface-variant font-medium">Bukti Transfer</span>
+                        <button onclick="openModal()" class="no-print flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-container transition-colors bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20">
                             <span class="material-symbols-outlined text-[14px]">visibility</span> Lihat Foto
                         </button>
                     </div>
@@ -95,25 +130,25 @@
             </div>
         </div>
 
-        <div class="mb-8 overflow-x-auto">
+        <div class="mb-10 overflow-hidden rounded-xl border border-outline-variant/50">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr>
-                    <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-right">Produk</th>              
-                    <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-right">Kode Unik</th>
-                    <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-right">Harga Jual</th>
-                    <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-right">Sisa Stok</th>
-                    <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-right">Aksi</th>
+                    <tr class="bg-surface-variant text-on-surface">
+                        <th scope="col" class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center w-16">No</th>              
+                        <th scope="col" class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-left">Produk</th>
+                        <th scope="col" class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Harga Satuan</th>
+                        <th scope="col" class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Qty</th>
+                        <th scope="col" class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Subtotal</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-outline-variant/30 bg-surface-container-lowest">
                     {% for item in order.items.all %}
-                    <tr class="hover:bg-gray-50/50 transition">
-                        <td class="py-4 px-4 text-sm text-gray-500">{{ forloop.counter }}</td>
-                        <td class="py-4 px-4 text-sm font-bold text-gray-800">{{ item.product.nama }}</td>
-                        <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp{{ item.harga_saat_beli|floatformat:"0g" }}</td>
-                        <td class="py-4 px-4 text-sm text-gray-600 text-center">{{ item.kuantitas }}</td>
-                        <td class="py-4 px-4 text-sm font-bold text-gray-800 text-right">Rp{{ item.subtotal|floatformat:"0g" }}</td>
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="py-4 px-6 text-sm text-on-surface-variant text-center font-medium">{{ forloop.counter }}</td>
+                        <td class="py-4 px-6 text-sm font-bold text-on-surface">{{ item.product.nama }}</td>
+                        <td class="py-4 px-6 text-sm text-on-surface-variant text-right">Rp{{ item.harga_saat_beli|floatformat:"0g" }}</td>
+                        <td class="py-4 px-6 text-sm font-bold text-on-surface-variant text-center">{{ item.kuantitas }}</td>
+                        <td class="py-4 px-6 text-sm font-bold text-on-surface text-right">Rp{{ item.subtotal|floatformat:"0g" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -121,50 +156,49 @@
         </div>
 
         <div class="flex justify-end">
-            <div class="w-full md:w-1/2 lg:w-1/3 space-y-3">
+            <div class="w-full md:w-1/2 lg:w-5/12 bg-surface p-6 rounded-2xl border border-outline-variant/30 space-y-4">
                 
                 {% if order.metode_pengiriman == 'ANT' and order.jarak_km %}
-                <div class="flex justify-between text-sm text-gray-600">
-                    <span>Ongkos Kirim ({{ order.jarak_km }} km)</span>
-                    <span class="font-medium">+ Rp{% widthratio order.jarak_km 1 5000 as ongkir %}{{ ongkir|floatformat:"0g" }}</span>
+                <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                    <span class="font-medium">Ongkos Kirim ({{ order.jarak_km }} km)</span>
+                    <span class="font-bold">+ Rp{% widthratio order.jarak_km 1 5000 as ongkir %}{{ ongkir|floatformat:"0g" }}</span>
                 </div>
-                <hr class="border-gray-200">
+                <hr class="border-outline-variant/30 border-dashed">
                 {% endif %}
 
                 <div class="flex justify-between items-end">
-                    <span class="text-gray-800 font-bold text-lg">Total Keseluruhan</span>
-                    <span class="text-3xl font-extrabold text-green-700">Rp{{ order.total_harga|floatformat:"0g" }}</span>
+                    <span class="text-on-surface font-black text-lg">TOTAL</span>
+                    <span class="text-3xl font-black text-primary tracking-tight">Rp{{ order.total_harga|floatformat:"0g" }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-500 text-center md:text-left">
-            <p class="font-bold text-gray-700 mb-1">Terima Kasih atas Kepercayaan Anda!</p>
-            <p>Harap simpan faktur ini sebagai bukti transaksi yang sah. Jika Anda memiliki pertanyaan mengenai pesanan ini, silakan hubungi admin kami melalui WhatsApp.</p>
+        <div class="mt-12 pt-8 border-t border-outline-variant/50 text-sm text-on-surface-variant text-center md:text-left">
+            <p class="font-bold text-on-surface mb-2 text-base">Terima Kasih atas Kepercayaan Anda!</p>
+            <p class="leading-relaxed">Harap simpan faktur ini sebagai bukti transaksi yang sah. Jika Anda memiliki pertanyaan mengenai pesanan ini, silakan hubungi admin kami melalui WhatsApp dengan menyebutkan Nomor ID Pesanan Anda.</p>
         </div>
-
     </div>
 
     {% if order.bukti_pembayaran %}
-    <div id="buktiModal" class="fixed inset-0 z-50 hidden bg-black/80 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 no-print">
-        <div class="relative max-w-2xl w-full bg-white rounded-xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modalContent">
+    <div id="buktiModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 no-print">
+        <div class="relative max-w-2xl w-full bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modalContent">
             
-            <div class="flex justify-between items-center p-4 border-b bg-gray-50">
-                <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-green-700">receipt_long</span>
+            <div class="flex justify-between items-center p-5 border-b border-outline-variant/50 bg-surface">
+                <h3 class="font-bold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">receipt_long</span>
                     Bukti Transfer ({{ order.order_id }})
                 </h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50">
+                <button onclick="closeModal()" class="text-on-surface-variant hover:text-error transition-colors p-1.5 rounded-lg hover:bg-error/10">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             
-            <div class="p-4 flex justify-center bg-gray-200/50 backdrop-blur-sm">
-                <img src="{{ order.bukti_pembayaran.url }}" alt="Bukti Pembayaran" class="max-h-[65vh] object-contain rounded-lg shadow-sm border border-gray-300">
+            <div class="p-6 flex justify-center bg-surface-container-low pattern-dots">
+                <img src="{{ order.bukti_pembayaran.url }}" alt="Bukti Pembayaran" class="max-h-[60vh] object-contain rounded-xl shadow-md border border-outline-variant/50">
             </div>
             
-            <div class="p-4 border-t bg-gray-50 flex justify-end">
-                <button onclick="closeModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-100 transition-colors">Tutup</button>
+            <div class="p-5 border-t border-outline-variant/50 bg-surface flex justify-end">
+                <button onclick="closeModal()" class="px-8 py-2.5 bg-surface-variant hover:bg-outline-variant text-on-surface rounded-xl font-bold transition-colors shadow-sm">Tutup</button>
             </div>
             
         </div>
@@ -174,23 +208,20 @@
 
 <script>
     function downloadDirectPDF() {
-    // Targetkan area element yang akan dikonversi menjadi file PDF
     const element = document.getElementById('invoice-print-area');
     
-    // Konfigurasi parameter render html2pdf secara presisi (A4 Portrait)
     const options = {
-        margin:       [0.4, 0.4, 0.4, 0.4], // Mengatur batas margin kertas PDF (dalam inchi)
-        filename:     'Faktur-DOCMart-{{ order.order_id }}.pdf',
+        margin:       [0.4, 0.4, 0.4, 0.4], 
+        filename:     'Faktur-{{ toko.nama_toko|slugify }}-{{ order.order_id }}.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { 
-            scale: 2, // Menggandakan resolusi tangkapan agar teks tidak buram saat di-zoom
-            useCORS: true, // Memastikan gambar produk/eksternal bisa dimuat silang origin
+            scale: 2, 
+            useCORS: true, 
             logging: false 
         },
         jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
     
-    // Eksekusi generator dan download file instan di browser pelanggan/admin
     html2pdf().set(options).from(element).save();
 }
 </script>

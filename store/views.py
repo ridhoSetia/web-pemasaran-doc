@@ -11,11 +11,18 @@ from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
-from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
 from datetime import timedelta, datetime
 
-from .models import Product, Order, OrderItem, OrderStatus
+import re
+from django.utils.html import strip_tags
+
+from django.contrib.auth import update_session_auth_hash
+
+import random
+
+# Impor tambahan DeliveryMethod dan PaymentMethod untuk validasi keamanan
+from .models import Product, Order, OrderItem, OrderStatus, DeliveryMethod, PaymentMethod, StoreSetting
 from .tasks import convert_product_image_to_webp, convert_order_payment_proof_to_webp
 
 import openpyxl
@@ -23,14 +30,12 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django import forms
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 
-# Fungsi lambda ini akan memeriksa: "Apakah user ini adalah superuser?"
-# Jika True, View dijalankan. Jika False, user ditendang ke halaman login.
-admin_only = user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')
+admin_only = user_passes_test(lambda u: u.is_superuser, login_url='/pengelola/login/')
 
 class AdminLoginForm(AuthenticationForm):
     """Form login admin khusus dengan validasi Cloudflare Turnstile Backend"""
@@ -38,41 +43,32 @@ class AdminLoginForm(AuthenticationForm):
     def clean(self):
         cleaned_data = super().clean()
         
-        # Django secara otomatis menyuntikkan objek 'request' ke dalam form kwargs
         request = self.request
         turnstile_token = request.POST.get('cf-turnstile-response')
         
         if not turnstile_token:
             raise forms.ValidationError("Verifikasi keamanan Captcha wajib diisi.")
             
-        # Kirim permintaan validasi (siteverify) langsung ke server Cloudflare
         try:
             response = requests.post(
                 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
                 data={
                     'secret': settings.CLOUDFLARE_TURNSTILE_SECRET_KEY,
                     'response': turnstile_token,
-                    # 'remoteip': request.META.get('REMOTE_ADDR')
                 },
-                timeout=5 # Batasi waktu tunggu maksimal 5 detik agar tidak memblokir thread
+                timeout=5 
             )
             result = response.json()
             
-            # Jika Cloudflare menyatakan token ini palsu/manipulasi bot
             if not result.get('success'):
-                error_codes = result.get('error-codes', ['unknown'])
                 raise forms.ValidationError("Verifikasi Captcha gagal. Deteksi aktivitas mencurigakan.")
                 
         except requests.exceptions.RequestException:
-            # Penanganan kegagalan koneksi keluar agar admin tidak terkunci jika API Cloudflare down
             raise forms.ValidationError("Gagal menghubungi server verifikasi. Silakan coba sesaat lagi.")
             
         return cleaned_data
 
 
-# Pertahanan Berlapis (Defense in Depth): 
-# Layer 1: Batasi spam massal dari 1 IP (10x/menit)
-# Layer 2: Batasi penebakan terdistribusi pada 1 username spesifik (5x/15menit)
 @method_decorator([
     ratelimit(key='ip', rate='10/m', method='POST', block=True),
     ratelimit(key='post:username', rate='5/15m', method='POST', block=True)
@@ -80,39 +76,32 @@ class AdminLoginForm(AuthenticationForm):
 class CustomAdminLoginView(LoginView):
     """View Login Admin yang dilindungi Cloudflare Turnstile & Multi-Key Rate Limiting"""
     form_class = AdminLoginForm
-    template_name = 'admin/login.html'
+    template_name = 'pengelola/login.html'
     redirect_authenticated_user = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Kirim Site Key ke template HTML untuk inisialisasi widget di sisi klien
         context['turnstile_site_key'] = settings.CLOUDFLARE_TURNSTILE_SITE_KEY
         return context
 
 @admin_only
 def inventory_list(request):
     products = Product.objects.all().order_by('-created_at')
-    
-    # Ambil semua kategori unik untuk dropdown filter
     categories = Product.objects.values_list('kategori', flat=True).distinct()
     
-    # Tangkap parameter dari URL
     q = request.GET.get('q', '')
     kategori = request.GET.get('kategori', 'ALL')
     stok = request.GET.get('stok', 'ALL')
     
-    # Filter Pencarian Teks (Nama atau SKU)
     if q:
         products = products.filter(
             Q(nama__icontains=q) | 
             Q(kode_unik__icontains=q)
         )
         
-    # Filter Kategori
     if kategori != 'ALL':
         products = products.filter(kategori=kategori)
         
-    # Filter Stok
     if stok == 'SAFE':
         products = products.filter(stok__gte=10)
     elif stok == 'LOW':
@@ -122,14 +111,13 @@ def inventory_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Ambil parameter URL saat ini (kecuali 'page') agar filter tidak hilang saat pindah halaman
     query = request.GET.copy()
     if 'page' in query:
         del query['page']
 
     context = {
         'products': page_obj,
-        'query_string': query.urlencode(), # Kirim sisa parameter ke template
+        'query_string': query.urlencode(),
         'category_choices': categories,
         'current_q': q,
         'current_kategori': kategori,
@@ -139,42 +127,28 @@ def inventory_list(request):
 
 @admin_only
 def overview_dashboard(request):
-    """
-    Logika bisnis untuk halaman utama (Overview/Dashboard).
-    Fokus pada efisiensi ORM Query.
-    """
-    
-    # Agregasi Total Penjualan & Pesanan
     sales_aggregation = Order.objects.filter(status=OrderStatus.SELESAI).aggregate(total_sales=Sum('total_harga'))
     total_sales = sales_aggregation['total_sales'] or 0
     total_orders = Order.objects.count()
     low_stock_count = Product.objects.filter(stok__lt=10).count()
     recent_orders = Order.objects.order_by('-order_date')[:4]
 
-    # Produk Terlaris
     top_products = Product.objects.annotate(
         total_sold=Sum('order_items__kuantitas')
     ).exclude(
         total_sold=None
     ).order_by('-total_sold')[:4]
 
-    # =================================================================
-    # --- LOGIKA GRAFIK TIME SERIES (7 HARI TERAKHIR) ---
-    # =================================================================
-    # 1. Gunakan localtime agar waktu saat ini akurat sesuai WITA
     now_local = timezone.localtime(timezone.now())
     seven_days_ago_date = now_local.date() - timedelta(days=6)
     
-    # 2. Buat batas awal (Jam 00:00:00 pada 7 hari yang lalu di zona WITA)
     start_datetime = timezone.make_aware(datetime.combine(seven_days_ago_date, datetime.min.time()))
     
-    # 3. Ambil data mentah (Abaikan fungsi bawaan DB agar tidak error di Docker)
     raw_orders = Order.objects.filter(
         status='SLS',
         order_date__gte=start_datetime
     ).values('order_date', 'total_harga')
     
-    # 4. Siapkan kerangka array (0 Rupiah untuk 7 hari ke belakang)
     date_labels = [(seven_days_ago_date + timedelta(days=i)).strftime('%d %b') for i in range(7)]
     revenue_data = [0.0] * 7
     
@@ -191,8 +165,6 @@ def overview_dashboard(request):
         'low_stock_count': low_stock_count,
         'recent_orders': recent_orders,
         'top_products': top_products,
-        
-        # PENTING: Gunakan json.dumps agar datanya mutlak aman dan tidak memicu error JS lagi
         'chart_labels': json.dumps(date_labels),
         'chart_data': json.dumps(revenue_data),
     }
@@ -207,20 +179,17 @@ def order_management(request):
     date_filter = request.GET.get('date', '')
     q = request.GET.get('q', '')
 
-    # Filter Pencarian Teks (ID Pesanan atau Nama Pembeli)
     if q:
         orders = orders.filter(
             Q(order_id__icontains=q) | 
             Q(nama_pembeli__icontains=q)
         )
 
-    # Filter Status
     if status_filter != 'ALL':
         valid_statuses = [choice[0] for choice in OrderStatus.choices]
         if status_filter in valid_statuses:
             orders = orders.filter(status=status_filter)
             
-    # Filter Tanggal
     if date_filter:
         orders = orders.filter(order_date__date=date_filter)
 
@@ -244,19 +213,12 @@ def order_management(request):
 
 @admin_only
 def export_orders_excel(request):
-    """
-    Ekspor data pesanan ke file Excel (.xlsx) dengan styling profesional,
-    Dropdown Data Validation, dan Rumus SUMIF Dinamis untuk Pendapatan.
-    """
-    # 1. Inisialisasi Workbook
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Laporan Pesanan"
     
-    # Pastikan garis kisi (gridlines) bawaan Excel tetap terlihat
     ws.views.sheetView[0].showGridLines = True
     
-    # 2. Definisikan Palet Warna & Font (Tema Hijau DOC Mart)
     HEADER_FILL = PatternFill(start_color="143D11", end_color="143D11", fill_type="solid")
     CARD_FILL = PatternFill(start_color="F1F8E9", end_color="F1F8E9", fill_type="solid")
     ZEBRA_FILL = PatternFill(start_color="F9FBE7", end_color="F9FBE7", fill_type="solid")
@@ -274,11 +236,9 @@ def export_orders_excel(request):
         bottom=Side(style='thin', color='DDDDDD')
     )
     
-    # 3. Desain Header Judul Dokumen
-    ws['A1'] = "LAPORAN MANAJEMEN PESANAN - DOC MART"
+    ws['A1'] = f"LAPORAN MANAJEMEN PESANAN - {pengaturan.nama_toko.upper()}"
     ws['A1'].font = FONT_TITLE
     
-    # 4. MEMBUAT KARTU RINGKASAN REVENUE (DENGAN RUMUS EXCEL DIGITAL)
     ws.merge_cells('A3:C3')
     ws.merge_cells('A4:C4')
     ws['A3'] = "TOTAL PENDAPATAN REALISASI (STATUS: SELESAI)"
@@ -286,20 +246,16 @@ def export_orders_excel(request):
     ws['A3'].fill = CARD_FILL
     ws['A3'].alignment = Alignment(horizontal="center", vertical="center")
     
-    # Rumus SUMIF: Cari kata "Selesai" di Kolom I (Status), lalu jumlahkan nilai di Kolom J (Total Harga)
-    # Batas pencarian diatur dinamis hingga 500 baris pertama data pesanan
     ws['A4'] = '=SUMIF(I6:I500, "Selesai", J6:J500)'
     ws['A4'].font = FONT_CARD_VALUE
     ws['A4'].fill = CARD_FILL
-    ws['A4'].number_format = '"Rp"#,##0' # Format Rupiah Akuntansi
+    ws['A4'].number_format = '"Rp"#,##0'
     ws['A4'].alignment = Alignment(horizontal="center", vertical="center")
     
-    # Beri bingkai border tipis pada kartu ringkasan pendapatan
     for r in range(3, 5):
         for c in range(1, 4):
             ws.cell(row=r, column=c).border = THIN_BORDER
 
-    # 5. Susun Header Tabel Utama (Baris ke-5)
     headers = [
         "No", "Order ID", "Nama Pembeli", "No WhatsApp", 
         "Pengiriman", "Alamat Detail", "Jarak (KM)", 
@@ -315,11 +271,9 @@ def export_orders_excel(request):
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
         cell.border = THIN_BORDER
         
-    # 6. Ambil Data dari Database Django
     orders = Order.objects.all().order_by('-order_date')
     start_data_row = 6
     
-    # KONFIGURASI DROPDOWN DATA VALIDATION UNTUK EXCEL
     status_dv = DataValidation(type="list", formula1='"Proses,Selesai,Batal"', allow_blank=True)
     ws.add_data_validation(status_dv)
     
@@ -332,7 +286,6 @@ def export_orders_excel(request):
     for idx, order in enumerate(orders, 1):
         current_row = start_data_row + idx - 1
         
-        # Format translasi data agar mudah dipahami di Excel
         status_label = status_map.get(order.status, 'Proses')
         metode_png = order.get_metode_pengiriman_display()
         metode_pemb = order.get_metode_pembayaran_display()
@@ -347,8 +300,8 @@ def export_orders_excel(request):
             order.alamat or '-',
             float(order.jarak_km) if order.jarak_km else 0,
             metode_pemb,
-            status_label, # Ini akan masuk ke kolom I (Status)
-            float(order.total_harga), # Ini akan masuk ke kolom J (Total Harga)
+            status_label,
+            float(order.total_harga),
             tanggal_str
         ]
         
@@ -358,68 +311,82 @@ def export_orders_excel(request):
             cell.font = FONT_BODY
             cell.border = THIN_BORDER
             
-            # Pengaturan Penyelarasan Posisi (Alignment)
             if col_num in [1, 2, 4, 7, 8, 9, 11]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             else:
                 cell.alignment = Alignment(horizontal="left", vertical="center")
                 
-            # Pemformatan Angka Spesifik
-            if col_num == 7: # Jarak KM
+            if col_num == 7:
                 cell.number_format = '0.00'
-            elif col_num == 10: # Format Mata Uang Rupiah di Kolom J
+            elif col_num == 10:
                 cell.number_format = '"Rp"#,##0'
                 
-            # Efek Estetika Zebra Striping (Baris Genap Diberi Warna Berbeda)
             if idx % 2 == 0:
                 cell.fill = ZEBRA_FILL
         
-        # IKAT DROPDOWN KE KOLOM STATUS (Kolom 9 / Huruf I)
         status_dv.add(ws.cell(row=current_row, column=9))
         
-    # 7. Auto-fit Ukuran Lebar Kolom Secara Proporsional
     for col in ws.columns:
         max_len = 0
         col_letter = col[0].column_letter
         for cell in col:
-            if cell.row < 5: # Abaikan baris judul dan kartu atas dari kalkulasi lebar
+            if cell.row < 5:
                 continue
             if cell.value:
                 max_len = max(max_len, len(str(cell.value)))
         ws.column_dimensions[col_letter].width = max(max_len + 5, 12)
         
-    # Set Tinggi Baris Spesifik agar Tampak Proporsional
-    ws.row_dimensions[5].height = 26 # Tinggi baris header tabel
+    ws.row_dimensions[5].height = 26
     
-    # 8. Set Judul File dan Return File Binary Excel ke Browser Admin
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response["Content-Disposition"] = "attachment; filename=Laporan_Penjualan_DOC_Mart.xlsx"
+    nama_file_aman = pengaturan.nama_toko.replace(' ', '_')
+    response["Content-Disposition"] = f"attachment; filename=Laporan_Penjualan_{nama_file_aman}.xlsx"
     wb.save(response)
     return response
+
 
 @admin_only
 def add_product(request):
     existing_categories = Product.objects.values_list('kategori', flat=True).distinct()
     
     if request.method == 'POST':
-        nama = request.POST.get('nama')
-        kode_unik = request.POST.get('kode_unik')
-        kategori_pilihan = request.POST.get('kategori')
-        kategori_baru = request.POST.get('kategori_baru')
-        harga = request.POST.get('harga')
-        stok = request.POST.get('stok')
+        nama = request.POST.get('nama', '').strip()
+        kode_unik = request.POST.get('kode_unik', '').strip().upper()
+        kategori_pilihan = request.POST.get('kategori', '').strip()
+        kategori_baru = request.POST.get('kategori_baru', '').strip()
         
-        # TANGKAP GAMBAR DARI REQUEST FILES
+        # Validasi Harga dan Stok (Mencegah huruf dan angka minus)
+        try:
+            harga = float(request.POST.get('harga', 0))
+            stok = int(request.POST.get('stok', 0))
+            if harga < 0 or stok < 0:
+                raise ValueError("Harga dan Stok tidak boleh bernilai negatif.")
+        except ValueError:
+            messages.error(request, "Input Harga atau Stok tidak valid. Pastikan hanya memasukkan angka positif.")
+            return redirect('store:add_product')
+            
         gambar_upload = request.FILES.get('gambar')
         
-        kategori_final = kategori_baru.strip() if kategori_pilihan == 'BARU' and kategori_baru else kategori_pilihan
-        
+        # Validasi Gambar (Maks 5 MB & format aman)
+        if gambar_upload:
+            if gambar_upload.size > 5242880:
+                messages.error(request, "Ukuran gambar maksimal 5 MB.")
+                return redirect('store:add_product')
+            ext = os.path.splitext(gambar_upload.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                messages.error(request, "Format file gambar tidak didukung.")
+                return redirect('store:add_product')
+                
+        kategori_final = kategori_baru if kategori_pilihan == 'BARU' and kategori_baru else kategori_pilihan
+        if not kategori_final:
+            kategori_final = "Uncategorized"
+            
         try:
             Product.objects.create(
-                nama=nama.strip(),
-                kode_unik=kode_unik.strip().upper(),
+                nama=nama,
+                kode_unik=kode_unik,
                 kategori=kategori_final,
                 harga=harga,
                 stok=stok,
@@ -438,18 +405,33 @@ def edit_product(request, product_id):
     existing_categories = Product.objects.values_list('kategori', flat=True).distinct()
     
     if request.method == 'POST':
-        product.nama = request.POST.get('nama').strip()
-        product.kode_unik = request.POST.get('kode_unik').strip().upper()
+        product.nama = request.POST.get('nama', '').strip()
+        product.kode_unik = request.POST.get('kode_unik', '').strip().upper()
         
-        kategori_pilihan = request.POST.get('kategori')
-        kategori_baru = request.POST.get('kategori_baru')
-        product.kategori = kategori_baru.strip() if kategori_pilihan == 'BARU' and kategori_baru else kategori_pilihan
+        kategori_pilihan = request.POST.get('kategori', '').strip()
+        kategori_baru = request.POST.get('kategori_baru', '').strip()
+        product.kategori = kategori_baru if kategori_pilihan == 'BARU' and kategori_baru else kategori_pilihan
         
-        product.harga = request.POST.get('harga')
-        product.stok = request.POST.get('stok')
+        # Validasi Harga dan Stok
+        try:
+            product.harga = float(request.POST.get('harga', product.harga))
+            product.stok = int(request.POST.get('stok', product.stok))
+            if product.harga < 0 or product.stok < 0:
+                raise ValueError("Harga dan Stok tidak boleh bernilai negatif.")
+        except ValueError:
+            messages.error(request, "Input Harga atau Stok tidak valid. Pastikan hanya memasukkan angka positif.")
+            return redirect('store:edit_product', product_id=product.id)
         
-        if 'gambar' in request.FILES:
-            product.gambar = request.FILES.get('gambar')
+        gambar_upload = request.FILES.get('gambar')
+        if gambar_upload:
+            if gambar_upload.size > 5242880:
+                messages.error(request, "Ukuran gambar maksimal 5 MB.")
+                return redirect('store:edit_product', product_id=product.id)
+            ext = os.path.splitext(gambar_upload.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                messages.error(request, "Format file gambar tidak didukung.")
+                return redirect('store:edit_product', product_id=product.id)
+            product.gambar = gambar_upload
         
         try:
             product.save()
@@ -462,7 +444,6 @@ def edit_product(request, product_id):
 
 @admin_only
 def delete_product(request, product_id):
-    # PENGAMANAN: Penghapusan hanya boleh dilakukan via metode POST
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
         nama_produk = product.nama
@@ -476,7 +457,6 @@ def update_order_status(request, order_id):
         order = get_object_or_404(Order, id=order_id)
         new_status = request.POST.get('status')
         
-        # Validasi keamanan: Pastikan status yang dikirim valid
         valid_statuses = [choice[0] for choice in OrderStatus.choices]
         if new_status in valid_statuses:
             order.status = new_status
@@ -489,36 +469,23 @@ def update_order_status(request, order_id):
 
 @admin_only
 def order_invoice(request, order_id):
-    # Mengambil order sekaligus relasi item-itemnya untuk efisiensi kueri
     order = get_object_or_404(Order.objects.prefetch_related('items__product'), id=order_id)
     
     context = {
         'order': order,
     }
-    # Halaman ini tidak menggunakan base.html admin agar layoutnya bersih (khusus cetak kertas)
     return render(request, 'store/admin/invoice.html', context)
 
 
 def index(request):
-    """
-    Menampilkan halaman utama website untuk pelanggan.
-    Kita bisa mengambil beberapa produk unggulan (Top Products) untuk ditampilkan.
-    """
     featured_products = Product.objects.all()
     return render(request, 'store/web/index.html', {'featured_products': featured_products})
 
 def product_list(request):
-    # Ambil semua produk secara default
-    products = Product.objects.all()
-    
-    # Ambil daftar kategori yang unik (distinct) untuk ditampilkan di sidebar
-    # Ini mencegah munculnya kategori ganda di checkbox
+    products = Product.objects.all().order_by('-created_at')
     categories = Product.objects.values_list('kategori', flat=True).distinct()
-    
-    # Tangkap kategori yang dicentang oleh user (bisa lebih dari satu)
     selected_cats = request.GET.getlist('cat')
     
-    # Jika ada kategori yang dipilih, filter produknya
     if selected_cats:
         products = products.filter(kategori__in=selected_cats)
         
@@ -540,10 +507,6 @@ def product_list(request):
     return render(request, 'store/web/shop.html', context)
 
 def cart_view(request):
-    """
-    Hanya merender kerangka halaman. 
-    Isi keranjang akan dirender oleh JavaScript menggunakan data LocalStorage.
-    """
     return render(request, 'store/web/cart.html')
 
 @ratelimit(key='ip', rate='10/h', method='POST')
@@ -553,15 +516,84 @@ def checkout_process(request):
         
     if request.method == 'POST':
         try:
-            nama = request.POST.get('nama')
-            hp = request.POST.get('hp')
-            pengiriman = request.POST.get('pengiriman')
-            pembayaran = request.POST.get('pembayaran')
-            alamat = request.POST.get('alamat', '')
-            lat = request.POST.get('lat', '')
-            lng = request.POST.get('lng', '')
+            # 1. PEMBERSIHAN STRING DASAR (Cegah Spasi Kosong)
+            nama = strip_tags(request.POST.get('nama', '')).strip()
+            hp = strip_tags(request.POST.get('hp', '')).strip()
+            pengiriman = strip_tags(request.POST.get('pengiriman', '')).strip()
+            pembayaran = strip_tags(request.POST.get('pembayaran', '')).strip()
+            alamat = strip_tags(request.POST.get('alamat', '')).strip()
+            lat = strip_tags(request.POST.get('lat', '')).strip()
+            lng = strip_tags(request.POST.get('lng', '')).strip()
             
-            # FITUR BARU: Tangkap jarak (konversi ke float jika ada) dengan validasi
+            # 2. VALIDASI KEAMANAN DATA TEKS & NOMOR
+            if not nama or not hp:
+                messages.error(request, "Nama dan Nomor HP wajib diisi.")
+                return redirect('store:checkout')
+                
+            if len(nama) > 50:
+                messages.error(request, "Nama terlalu panjang. Silakan gunakan nama panggilan.")
+                return redirect('store:checkout')
+                
+            if any(char.isdigit() for char in nama):
+                messages.error(request, "Nama tidak boleh mengandung angka.")
+                return redirect('store:checkout')
+                
+            spam_keywords = ['jasa', 'pembuatan', 'website', 'aplikasi', 'promo', 'http', 'www', '.com', '.id', 'slot', 'gacor']
+            if any(keyword in nama.lower() for keyword in spam_keywords):
+                messages.error(request, "Sistem mendeteksi indikasi spam. Transaksi ditolak.")
+                return redirect('store:checkout')
+                
+            # Pemblokir Simbol Ilegal (Payload XSS)
+            if re.search(r'[<>={\}\[\];]', nama):
+                messages.error(request, "Nama mengandung simbol ilegal. Harap masukkan nama yang valid.")
+                return redirect('store:checkout')
+
+            if not hp.isdigit() or len(hp) < 10 or len(hp) > 15:
+                messages.error(request, "Nomor HP tidak valid. Gunakan 10-15 angka tanpa spasi/simbol.")
+                return redirect('store:checkout')
+
+            # E. VALIDASI KODE OTP
+            input_otp = request.POST.get('otp', '').strip()
+            session_otp = request.session.get('otp_code')
+            session_hp = request.session.get('otp_phone')
+
+            if not input_otp:
+                messages.error(request, "Anda wajib melakukan verifikasi Nomor HP dengan meminta kode OTP.")
+                return redirect('store:checkout')
+
+            # Periksa apakah OTP salah, ATAU user nakal mengubah nomor HP-nya setelah meminta OTP
+            if input_otp != session_otp or hp != session_hp:
+                messages.error(request, "Kode OTP salah atau tidak cocok dengan Nomor HP. Silakan minta OTP ulang.")
+                return redirect('store:checkout')
+
+            # Hancurkan memori OTP di server agar tidak bisa dipakai 2 kali (Replay Attack)
+            del request.session['otp_code']
+            del request.session['otp_phone']
+
+            # 3. VALIDASI PILIHAN (CHOICES)
+            valid_pengiriman = [choice[0] for choice in DeliveryMethod.choices]
+            valid_pembayaran = [choice[0] for choice in PaymentMethod.choices]
+            
+            if pengiriman not in valid_pengiriman:
+                messages.error(request, "Metode pengiriman tidak valid.")
+                return redirect('store:checkout')
+                
+            if pembayaran not in valid_pembayaran:
+                messages.error(request, "Metode pembayaran tidak valid.")
+                return redirect('store:checkout')
+
+            # 4. VALIDASI FILE GAMBAR
+            bukti_tf = request.FILES.get('bukti_pembayaran')
+            if bukti_tf:
+                if bukti_tf.size > 5242880:
+                    messages.error(request, "Ukuran gambar terlalu besar. Maksimal 5 MB.")
+                    return redirect('store:checkout')
+                
+                ext = os.path.splitext(bukti_tf.name)[1].lower()
+                if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                    messages.error(request, "Format file tidak didukung. Gunakan JPG, PNG, atau WEBP.")
+                    return redirect('store:checkout')
+
             jarak_raw = request.POST.get('jarak_km', '')
             jarak_km = None
             if jarak_raw:
@@ -574,12 +606,11 @@ def checkout_process(request):
                     messages.error(request, "Format jarak tidak valid.")
                     return redirect('store:checkout')
             
-            bukti_tf = request.FILES.get('bukti_pembayaran')
             cart_data = json.loads(request.POST.get('cart_data', '[]'))
             
             if not cart_data:
                 messages.error(request, "Keranjang Anda kosong.")
-                return redirect('store:market')
+                return redirect('store:checkout')
 
             with transaction.atomic():
                 total_kalkulasi_sistem = 0
@@ -597,13 +628,21 @@ def checkout_process(request):
                     jarak_km=jarak_km,
                     metode_pembayaran=pembayaran,
                     bukti_pembayaran=bukti_tf,
-                    total_harga=0, # Akan di-update di bawah
+                    total_harga=0, 
                     items_summary="Menunggu..."
                 )
 
                 for item in cart_data:
                     product_id = item.get('id')
-                    kuantitas = int(item.get('qty', 0))
+                    
+                    # 5. VALIDASI ANTI-HACK KUANTITAS MINUS/NOL
+                    try:
+                        kuantitas = int(item.get('qty', 0))
+                    except ValueError:
+                        raise ValueError("Format kuantitas barang rusak.")
+                        
+                    if kuantitas <= 0:
+                        raise ValueError("Terdeteksi anomali pada keranjang (kuantitas tidak boleh nol/minus)!")
                     
                     product = Product.objects.select_for_update().get(id=product_id)
                     if product.stok < kuantitas:
@@ -620,23 +659,20 @@ def checkout_process(request):
                     )
                     rincian_item.append(f"{kuantitas}x {product.nama}")
 
-                # FITUR BARU: KALKULASI ONGKIR (Rp 5.000 / km)
                 ongkos_kirim = 0
                 if pengiriman == 'ANT' and jarak_km:
                     ongkos_kirim = int(jarak_km * 5000)
                     rincian_item.append(f"Ongkir ({jarak_km} km)")
 
-                # Gabungkan subtotal barang + ongkos kirim
                 order.total_harga = total_kalkulasi_sistem + ongkos_kirim
                 order.items_summary = ", ".join(rincian_item)[:250]
                 order.save()
 
-            # INTEGRASI WHATSAPP FONNTE
             fonnte_token = settings.FONNTE_TOKEN
-            nomor_admin = '0895704050703' 
+            # Ambil nomor dari database pengaturan
+            pengaturan_toko = StoreSetting.load()
+            nomor_admin = pengaturan_toko.nomor_admin
             
-            # Buat URL Faktur yang bisa di-klik (gunakan domain dari settings, bukan dari request)
-            # Ini mencegah Host Header Injection
             allowed_domains = settings.ALLOWED_HOSTS
             domain = allowed_domains[0] if allowed_domains else 'localhost'
             protocol = 'https' if not settings.DEBUG else 'http'
@@ -650,39 +686,33 @@ def checkout_process(request):
                 f"Pembeli: {order.nama_pembeli}\n"
                 f"No HP: {order.nomor_hp}\n"
                 f"Total Akhir: Rp{order.total_harga:,.0f}\n\n"
-                f"🔗 *Buka Faktur Lengkap:*\n{link_faktur}\n\n"
+                f"Buka Faktur Lengkap:\n{link_faktur}\n\n"
                 f"Lokasi Peta: {maps_url}"
             )
 
             pesan_pelanggan = (
                 f"Halo *{order.nama_pembeli}*,\n\n"
-                f"Terima kasih telah berbelanja di *DOC Mart*! 🐣\n"
+                f"Terima kasih telah berbelanja di *{pengaturan_toko.nama_toko}*! \n"
                 f"Pesanan Anda dengan ID *{order.order_id}* telah kami terima dan sedang kami proses.\n\n"
                 f"Total Tagihan: *Rp{order.total_harga:,.0f}*\n\n"
-                f"📄 *CEK STATUS & FAKTUR PESANAN ANDA DI SINI:*\n"
+                f"CEK STATUS & FAKTUR PESANAN ANDA DI SINI:\n"
                 f"{link_faktur}\n\n"
             )
 
-            pesan_pelanggan += "Jika Anda merasa tidak memesan, tolong chat nomor ini untuk konfirmasi. Terima kasih! 🙏"
+            pesan_pelanggan += "Jika Anda merasa tidak memesan, tolong chat nomor ini untuk konfirmasi. Terima kasih!"
 
-            # Eksekusi Pengiriman Pesan
             try:
-                # Tembak API ke nomor Admin
                 requests.post(
                     "https://api.fonnte.com/send", 
                     headers={"Authorization": fonnte_token}, 
                     data={"target": nomor_admin, "message": pesan_admin}
                 )
-                
-                # Tembak API ke nomor Pelanggan (menggunakan variabel 'hp' dari input form)
                 requests.post(
                     "https://api.fonnte.com/send", 
                     headers={"Authorization": fonnte_token}, 
                     data={"target": hp, "message": pesan_pelanggan}
                 )
             except Exception as e:
-                # Menangkap error agar jika Fonnte sedang gangguan, 
-                # transaksi checkout pelanggan di website tetap berhasil
                 print(f"Peringatan: Gagal mengirim WhatsApp. {str(e)}")
 
             return render(request, 'store/web/order_success.html', {'order_id': order.order_id})
@@ -696,15 +726,12 @@ def checkout_process(request):
          
 @ratelimit(key='ip', rate='20/h', method='POST')
 def track_order(request):
-    """ Halaman Cek Pesanan """
     if request.method == 'POST':
         order_id = request.POST.get('order_id', '').strip()
         hp = request.POST.get('hp', '').strip()
         
         try:
-            # Wajib cocok antara ID Pesanan dan Nomor HP
             order = Order.objects.get(order_id=order_id, nomor_hp=hp)
-            # Jika cocok, lemparkan ke halaman faktur publik
             return redirect('store:public_invoice', order_id=order.order_id)
         except Order.DoesNotExist:
             messages.error(request, "Pesanan tidak ditemukan. Periksa kembali ID Pesanan dan Nomor WA Anda.")
@@ -712,13 +739,106 @@ def track_order(request):
     return render(request, 'store/web/track_order.html')
 
 def public_invoice(request, order_id):
-    """ Halaman Faktur Publik (Read-Only) """
     order = get_object_or_404(Order.objects.prefetch_related('items__product'), order_id=order_id)
     
     context = {
         'order': order,
-        # Variabel penanda bahwa ini dilihat oleh publik, bukan admin
         'is_public': True 
     }
-    # Kita menggunakan template admin/invoice.html yang sudah Anda buat sebelumnya agar desainnya konsisten
     return render(request, 'store/admin/invoice.html', context)
+
+@ratelimit(key='ip', rate='5/h', method='POST') # Batasi 1 IP maksimal minta OTP 5x per jam
+def send_otp_wa(request):
+    """ API untuk mengirim OTP ke WhatsApp pelanggan via AJAX """
+    if request.method == 'POST':
+        # Mendukung pembacaan data JSON dari Fetch API JavaScript
+        try:
+            body = json.loads(request.body)
+            hp = body.get('hp', '').strip()
+        except:
+            hp = request.POST.get('hp', '').strip()
+            
+        hp = strip_tags(hp)
+        if not hp.isdigit() or len(hp) < 10 or len(hp) > 15:
+            return JsonResponse({'status': 'error', 'message': 'Nomor HP tidak valid. Gunakan angka 10-15 digit.'}, status=400)
+
+        # 1. Hasilkan 6 digit angka acak
+        otp = str(random.randint(100000, 999999))
+        
+        # 2. Simpan OTP dan Nomor HP ke dalam Session (Ingatan Server)
+        request.session['otp_code'] = otp
+        request.session['otp_phone'] = hp
+
+        # 3. Pesan yang dikirim ke Pelanggan
+        pesan = (
+            f"*VERIFIKASI DOC MART*\n\n"
+            f"Kode Rahasia (OTP) Anda adalah: *{otp}*\n\n"
+            f"Kode ini digunakan untuk verifikasi pesanan. *JANGAN* berikan kode ini kepada siapapun."
+        )
+
+        # 4. Eksekusi Pengiriman via Fonnte
+        try:
+            fonnte_token = settings.FONNTE_TOKEN
+            response = requests.post(
+                "https://api.fonnte.com/send", 
+                headers={"Authorization": fonnte_token}, 
+                data={"target": hp, "message": pesan},
+                timeout=5
+            )
+            if response.status_code == 200:
+                return JsonResponse({'status': 'success', 'message': 'OTP berhasil dikirim ke WhatsApp!'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Gagal mengirim pesan dari sisi gateway.'}, status=500)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': 'Gagal koneksi ke server Fonnte.'}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Method tidak diizinkan.'}, status=405)
+
+@admin_only
+def admin_settings(request):
+    setting = StoreSetting.load()
+    password_form = PasswordChangeForm(request.user)
+
+    if request.method == 'POST':
+        # Jika Admin menyimpan profil/info web
+        if 'save_web_settings' in request.POST:
+            setting.nama_toko = request.POST.get('nama_toko', '').strip()
+            setting.nomor_admin = request.POST.get('nomor_admin', '').strip()
+            setting.alamat_toko = request.POST.get('alamat_toko', '').strip()
+            setting.save()
+            messages.success(request, "Pengaturan toko berhasil diperbarui!")
+            return redirect('store:admin_settings')
+            
+        # Jika Admin mengubah password
+        elif 'save_password' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Cegah admin otomatis logout
+                messages.success(request, "Password administrator berhasil diubah!")
+                return redirect('store:admin_settings')
+            else:
+                messages.error(request, "Gagal mengubah password. Pastikan input sudah benar.")
+
+    context = {
+        'setting': setting,
+        'password_form': password_form
+    }
+    return render(request, 'store/admin/settings.html', context)
+
+@admin_only
+def api_pending_orders(request):
+    """ API Ringan untuk mensuplai data Dropdown Notifikasi """
+    # Ambil 5 pesanan terbaru yang berstatus PROSES
+    orders = Order.objects.filter(status=OrderStatus.PROSES).order_by('-order_date')[:5]
+    total_proses = Order.objects.filter(status=OrderStatus.PROSES).count()
+    
+    data = []
+    for o in orders:
+        data.append({
+            'id': o.order_id,
+            'nama': o.nama_pembeli,
+            'total': f"Rp{o.total_harga:,.0f}",
+            'waktu': timezone.localtime(o.order_date).strftime('%d %b %H:%M')
+        })
+    return JsonResponse({'count': total_proses, 'orders': data})

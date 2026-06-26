@@ -89,6 +89,8 @@ SECURE_HSTS_PRELOAD = not DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
     'https://kelompoktanimelati.id',
+    'http://127.0.0.1:8810',
+    'http://localhost:8810'
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -107,6 +109,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.store_settings',
             ],
         },
     },
@@ -182,11 +185,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/pengelola/login/'
 
-LOGIN_REDIRECT_URL = '/admin/overview/'
+LOGIN_REDIRECT_URL = '/pengelola/overview/'
 
-LOGOUT_REDIRECT_URL = '/admin/login/'
+LOGOUT_REDIRECT_URL = '/pengelola/login/'
 
 FONNTE_TOKEN = os.environ.get("TOKEN_FONNTE")
 

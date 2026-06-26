@@ -97,14 +97,14 @@ class SecurityAccessTest(TestCase):
         """Memastikan pengunjung anonim tanpa login ditendang ke halaman login"""
         response = self.client.get(reverse('store:overview'))
         self.assertEqual(response.status_code, 302)
-        self.assertTrue('/admin/login/' in response.url)
+        self.assertTrue('/pengelola/login/' in response.url)
 
     def test_admin_dashboard_blocks_normal_users(self):
         """Memastikan user login tapi BUKAN superuser tetap ditolak"""
         self.client.login(username='pelanggan', password='rahasia123')
         response = self.client.get(reverse('store:inventory'))
         self.assertEqual(response.status_code, 302)
-        self.assertTrue('/admin/login/' in response.url)
+        self.assertTrue('/pengelola/login/' in response.url)
 
     def test_admin_dashboard_allows_superusers(self):
         """Memastikan admin sesungguhnya (superuser) diizinkan masuk"""
