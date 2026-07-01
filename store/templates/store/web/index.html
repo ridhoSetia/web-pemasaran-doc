@@ -88,35 +88,71 @@
       </div>
     </section>
 
-    <section class="py-xxl bg-primary-container" aria-labelledby="promo-heading">
+<!-- SECTION LOKASI (GOOGLE MAPS) -->
+    <section class="py-xxl bg-primary-container" aria-labelledby="lokasi-heading">
       <div class="max-w-container-max mx-auto px-lg">
         <article class="flex flex-col lg:flex-row items-center gap-xl bg-surface-container-lowest rounded-2xl p-xl shadow-xl overflow-hidden border border-outline-variant">
-          <div class="w-full lg:w-1/2">
+          
+          <!-- Sisi Kiri: Informasi Kontak -->
+          <div class="w-full lg:w-5/12">
             <span class="text-tertiary font-bold flex items-center gap-xs mb-md text-sm">
-              <span class="material-symbols-outlined" aria-hidden="true">handshake</span>
-              PROGRAM KEMITRAAN
+              <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+              KUNJUNGI KANDANG KAMI
             </span>
-            <h2 id="promo-heading" class="font-h2 text-h2 text-on-surface mb-md">Paket Starter Ternak Pemula</h2>
-            <p class="text-on-surface-variant mb-xl leading-relaxed">
-              Solusi lengkap untuk Anda yang baru memulai. Termasuk 1 Box DOC Ayam KUB (100 ekor), pakan starter 50kg, vitamin, dan modul panduan budidaya intensif.
+            <h2 id="lokasi-heading" class="font-h2 text-h2 text-on-surface mb-md">Lokasi Peternakan {{ toko.nama_toko }}</h2>
+            <p class="text-on-surface-variant mb-8 leading-relaxed">
+              Lihat langsung kualitas pembibitan kami. Kami mengundang Anda untuk berkunjung dan berkonsultasi seputar budidaya Ayam KUB unggulan.
             </p>
             
-            <div class="flex items-center gap-lg mt-8">
-              <div class="flex flex-col">
-                <span class="text-on-surface-variant line-through text-body-sm">Rp 1.250.000</span>
-                <span class="text-primary font-h3 text-h3">Rp 999.000</span>
+            <div class="space-y-5">
+              <div class="flex items-start gap-4">
+                <div class="bg-primary/10 p-2.5 rounded-xl text-primary mt-1 shadow-sm border border-primary/10">
+                  <span class="material-symbols-outlined text-[24px]">map</span>
+                </div>
+                <div>
+                  <p class="font-bold text-on-surface text-base mb-1">Alamat Lengkap</p>
+                  <p class="text-on-surface-variant text-sm leading-relaxed">{{ toko.alamat_toko }}</p>
+                </div>
               </div>
-              <button type="button" class="bg-primary text-white px-xl py-md rounded-full font-semibold shadow-md hover:bg-[#23501e] transition-all focus:ring-4 focus:ring-primary/30">
-                Pesan Paket Sekarang
-              </button>
+              
+              <div class="flex items-start gap-4">
+                <div class="bg-primary/10 p-2.5 rounded-xl text-primary mt-1 shadow-sm border border-primary/10">
+                  <span class="material-symbols-outlined text-[24px]">schedule</span>
+                </div>
+                <div>
+                  <p class="font-bold text-on-surface text-base mb-1">Jam Operasional</p>
+                  <p class="text-on-surface-variant text-sm">Senin - Sabtu: 08.00 - 17.00 WITA<br>Minggu: Tutup (Kecuali Janji Temu)</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-10">
+              <a href="https://www.google.com/maps?q=-0.44875377355076096,117.09608147598206" target="_blank" rel="noopener noreferrer" class="inline-flex w-full sm:w-auto justify-center bg-primary text-white px-8 py-3.5 rounded-xl font-bold shadow-md hover:bg-primary-container transition-all focus:ring-4 focus:ring-primary/30 items-center gap-2 transform active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[20px]">directions</span>
+                Buka di Google Maps
+              </a>
             </div>
           </div>
-          <figure class="w-full lg:w-1/2 relative aspect-video rounded-xl overflow-hidden">
-            <img alt="Ilustrasi paket starter ternak berisi DOC dan pakan" class="w-full h-full object-cover" src="{% static 'images/kandang-ayam-dekat.webp' %}" />
-            <figcaption class="absolute top-md right-md bg-secondary text-on-secondary px-md py-xs rounded-full font-bold shadow-lg text-sm">
-              Hemat 20%
-            </figcaption>
+
+          <!-- Sisi Kanan: Peta Interaktif iframe -->
+          <figure class="w-full lg:w-7/12 relative aspect-square sm:aspect-video lg:aspect-auto lg:h-[450px] rounded-xl overflow-hidden shadow-inner border border-outline-variant/50 bg-surface-variant">
+            <!-- 
+              Iframe ini dikonfigurasi untuk menampilkan koordinat peternakan Anda.
+              Titik latitude dan longitude (-0.44875377355076096, 117.09608147598206) diambil dari sistem Checkout sebelumnya.
+            -->
+            <iframe 
+              src="https://www.google.com/maps?q=-0.44875377355076096,117.09608147598206&hl=id&z=15&output=embed" 
+              width="100%" 
+              height="100%" 
+              style="border:0;" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Lokasi Peternakan {{ toko.nama_toko }}"
+              class="absolute inset-0 transition-opacity duration-500">
+            </iframe>
           </figure>
+
         </article>
       </div>
     </section>

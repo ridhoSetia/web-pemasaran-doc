@@ -1,181 +1,271 @@
-{% extends 'store/admin/base.html' %} 
-
-{% block title %}DOC Mart - Ringkasan{% endblock %} 
-{% block header_title %}Ringkasan Dashboard{% endblock %} 
-
-{% block content %}
-  <section class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar" aria-label="Konten Ringkasan">
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
-      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex justify-between items-start mb-4">
-          <div class="w-10 h-10 bg-primary-container/10 text-primary rounded-lg flex items-center justify-center">
-            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
-          </div>
+{% extends 'store/admin/base.html' %} {% block header_title %}Ringkasan
+Dashboard{% endblock %} {% block content %}
+<section
+  class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar"
+  aria-label="Konten Ringkasan"
+>
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6"
+  >
+    <article
+      class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow"
+    >
+      <div class="flex justify-between items-start mb-4">
+        <div
+          class="w-10 h-10 bg-primary-container/10 text-primary rounded-lg flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true"
+            >payments</span
+          >
         </div>
-        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Pendapatan</h3>
-        <p class="text-3xl font-bold text-on-surface">Rp{{ total_sales|floatformat:"0g" }}</p>
-      </article>
-
-      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex justify-between items-start mb-4">
-          <div class="w-10 h-10 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center">
-            <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
-          </div>
-        </div>
-        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Pesanan</h3>
-        <p class="text-3xl font-bold text-on-surface">{{ total_orders }} <span class="text-sm font-medium text-on-surface-variant normal-case tracking-normal">Transaksi</span></p>
-      </article>
-
-      <article class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex justify-between items-start mb-4">
-          <div class="w-10 h-10 bg-error/10 text-error rounded-lg flex items-center justify-center">
-            <span class="material-symbols-outlined" aria-hidden="true">warning</span>
-          </div>
-          {% if low_stock_count > 0 %}
-          <span class="bg-error/10 text-error px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Kritis</span>
-          {% endif %}
-        </div>
-        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Stok Menipis</h3>
-        <p class="text-3xl font-bold text-on-surface">{{ low_stock_count }} <span class="text-sm font-medium text-on-surface-variant normal-case tracking-normal">Produk</span></p>
-      </article>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
-        
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-outline-variant/50 p-4 md:p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Grafik Pendapatan (7 Hari Terakhir)</h3>
-              <div class="relative w-full h-64 md:h-80">
-                  <div id="revenueChart"></div>
-              </div>
-        </div>
-        
-        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col">
-            <h4 class="serif-heading text-lg font-bold text-on-surface mb-6">Produk Terlaris</h4>
-            <div class="flex-1 flex flex-col gap-3">
-              {% for product in top_products %}
-                <article class="flex items-center gap-4 p-2 rounded-lg hover:bg-surface-container-high transition-colors group">
-                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                     <span class="material-symbols-outlined text-[20px]">inventory_2</span>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-on-surface truncate">{{ product.nama }}</p>
-                    <p class="text-xs font-medium text-on-surface-variant">{{ product.total_sold }} terjual</p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-sm font-bold text-primary">Rp{{ product.harga|floatformat:"0g" }}</p>
-                  </div>
-                </article>
-              {% empty %}
-                <div class="text-center py-8 text-on-surface-variant text-sm font-medium">Belum ada data penjualan.</div>
-              {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden w-full overflow-x-auto">
-      <div class="bg-gradient-to-r from-tertiary/15 via-tertiary/5 to-transparent px-6 py-4 border-b border-tertiary/10 flex items-center gap-3">
-        <h4 class="serif-heading text-lg font-bold text-on-surface">Pesanan Terbaru</h4>
       </div>
-      <table class="w-full text-left border-collapse whitespace-nowrap">
-        <thead class="bg-primary border-b border-outline-variant/30">
+      <h3
+        class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+      >
+        Total Pendapatan
+      </h3>
+      <p class="text-3xl font-bold text-on-surface">
+        Rp{{ total_sales|floatformat:"0g" }}
+      </p>
+    </article>
+
+    <article
+      class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow"
+    >
+      <div class="flex justify-between items-start mb-4">
+        <div
+          class="w-10 h-10 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true"
+            >shopping_basket</span
+          >
+        </div>
+      </div>
+      <h3
+        class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+      >
+        Total Pesanan
+      </h3>
+      <p class="text-3xl font-bold text-on-surface">
+        {{ total_orders }}
+        <span
+          class="text-sm font-medium text-on-surface-variant normal-case tracking-normal"
+          >Transaksi</span
+        >
+      </p>
+    </article>
+
+    <article
+      class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow"
+    >
+      <div class="flex justify-between items-start mb-4">
+        <div
+          class="w-10 h-10 bg-error/10 text-error rounded-lg flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true"
+            >warning</span
+          >
+        </div>
+        {% if low_stock_count > 0 %}
+        <span
+          class="bg-error/10 text-error px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+          >Kritis</span
+        >
+        {% endif %}
+      </div>
+      <h3
+        class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+      >
+        Stok Menipis
+      </h3>
+      <p class="text-3xl font-bold text-on-surface">
+        {{ low_stock_count }}
+        <span
+          class="text-sm font-medium text-on-surface-variant normal-case tracking-normal"
+          >Produk</span
+        >
+      </p>
+    </article>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+    <div
+      class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-outline-variant/50 p-4 md:p-6"
+    >
+      <h3 class="text-lg font-bold text-gray-800 mb-4">
+        Grafik Pendapatan (7 Hari Terakhir)
+      </h3>
+      <div class="relative w-full h-64 md:h-80">
+        <div id="revenueChart"></div>
+      </div>
+    </div>
+
+    <div
+      class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col"
+    >
+      <h4 class="serif-heading text-lg font-bold text-on-surface mb-6">
+        Produk Terlaris
+      </h4>
+      <div class="flex-1 flex flex-col gap-3">
+        {% for product in top_products %}
+        <article
+          class="flex items-center gap-4 p-2 rounded-lg hover:bg-surface-container-high transition-colors group"
+        >
+          <div
+            class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+          >
+            <span class="material-symbols-outlined text-[20px]"
+              >inventory_2</span
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-on-surface truncate">
+              {{ product.nama }}
+            </p>
+            <p class="text-xs font-medium text-on-surface-variant">
+              {{ product.total_sold }} terjual
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold text-primary">
+              Rp{{ product.harga|floatformat:"0g" }}
+            </p>
+          </div>
+        </article>
+        {% empty %}
+        <div
+          class="text-center py-8 text-on-surface-variant text-sm font-medium"
+        >
+          Belum ada data penjualan.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden mt-8"
+  >
+    <div
+      class="p-5 md:p-6 border-b border-outline-variant bg-surface-variant/30"
+    >
+      <h3 class="font-bold text-lg text-on-surface">Pesanan Terbaru</h3>
+    </div>
+
+    <!-- 1. PEMBUNGKUS RESPONSIVE (Scroll Horizontal di HP) -->
+    <div class="overflow-x-auto w-full custom-scrollbar">
+      <!-- Tambahkan class whitespace-nowrap pada table -->
+      <table class="w-full text-left whitespace-nowrap">
+        <thead class="bg-primary text-white">
           <tr>
-              <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left">ID Pesanan</th>              
-              <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left">Nama Pembeli</th>
-              <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left">Harga</th>
-              <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left">Tanggal Pesan</th>
-              <th scope="col" class="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left">Status</th>
+            <th class="p-4 text-xs font-bold uppercase tracking-wider">
+              ID Pesanan
+            </th>
+            <th class="p-4 text-xs font-bold uppercase tracking-wider">
+              Harga
+            </th>
+            <th
+              class="p-4 text-xs font-bold uppercase tracking-wider text-center"
+            >
+              Status
+            </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-outline-variant/20">
+        <tbody class="divide-y divide-outline-variant/30">
           {% for order in recent_orders %}
-            <tr class="hover:bg-surface-container-high/50 transition-colors">
-              <td class="px-6 py-4 text-sm font-bold text-on-surface">{{ order.order_id }}</td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <span class="text-sm font-medium text-on-surface">{{ order.nama_pembeli }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm font-bold text-primary">Rp{{ order.total_harga|floatformat:"0g" }}</td>
-              <td class="px-6 py-4 text-sm text-on-surface-variant">{{ order.order_date|date:"d M Y, H:i" }}</td>
-              <td class="px-6 py-4">
-                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {% if order.status == 'PRO' %}bg-secondary/10 text-secondary{% elif order.status == 'SLS' %}bg-primary/10 text-primary{% else %}bg-error/10 text-error{% endif %}">{{ order.get_status_display }}</span>
-              </td>
-            </tr>
+          <tr class="hover:bg-surface-variant/20 transition-colors">
+            <td class="p-4 text-sm font-bold text-primary">
+              {{ order.order_id }}
+            </td>
+
+            <td class="p-4 text-sm font-bold text-on-surface">
+              Rp{{ order.total_harga }}
+            </td>
+            <td class="p-4 text-center">
+              <span
+                class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full {% if order.status == 'PRO' %} bg-secondary/20 text-secondary-container-on {% elif order.status == 'SE' %} bg-primary/10 text-primary {% else %} bg-outline-variant/30 text-on-surface-variant {% endif %}"
+              >
+                {{ order.get_status_display }}
+              </span>
+            </td>
+          </tr>
           {% empty %}
-            <tr>
-              <td colspan="5" class="text-center py-10 text-on-surface-variant text-sm font-medium">Belum ada pesanan masuk.</td>
-            </tr>
+          <tr>
+            <td
+              colspan="4"
+              class="p-8 text-center text-sm font-medium text-on-surface-variant"
+            >
+              Belum ada pesanan terbaru.
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
-      <div class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex justify-center">
-        <a href="{% url 'store:orders' %}" class="text-sm font-bold text-primary hover:underline px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors">Lihat Semua Pesanan</a>
-      </div>
-    </section>
-  </section>
+    </div>
+  </div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    var options = {
-        series: [{
-            name: 'Pendapatan',
-            data: {{ chart_data|safe }}
-        }],
-        chart: {
-            type: 'area', // Gunakan tipe Area agar ada efek gradasi di bawah garis
-            height: '100%',
-            fontFamily: 'Open Sans, sans-serif',
-            toolbar: { show: false }, // Hilangkan ikon kamera/zoom
-            zoom: { enabled: false }
-        },
-        colors: ['#143D11'], // Hijau Primary Anda
-        dataLabels: { enabled: false }, // Jangan tampilkan angka di atas titik
-        stroke: {
-            curve: 'smooth', // Lengkungan elegan ApexCharts (lebih pintar dari Plotly)
-            width: 3
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.4,
-                opacityTo: 0.05,
-                stops: [0, 90, 100]
-            }
-        },
-        xaxis: {
-            categories: {{ chart_labels|safe }},
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-            tooltip: { enabled: false }
-        },
-        yaxis: {
-            labels: {
-                formatter: function (value) {
-                    // Format angka menjadi Rp 1.000.000 secara otomatis
-                    return "Rp " + value.toLocaleString('id-ID'); 
-                }
-            }
-        },
-        grid: {
-            borderColor: '#e8ead6',
-            strokeDashArray: 4, // Garis putus-putus minimalis
-            yaxis: { lines: { show: true } },
-            xaxis: { lines: { show: false } }
-        },
-        tooltip: {
-            y: {
-                formatter: function (value) {
-                    return "Rp " + value.toLocaleString('id-ID');
-                }
-            }
-        }
-    };
+  document.addEventListener("DOMContentLoaded", function() {
+      var options = {
+          series: [{
+              name: 'Pendapatan',
+              data: {{ chart_data|safe }}
+          }],
+          chart: {
+              type: 'area', // Gunakan tipe Area agar ada efek gradasi di bawah garis
+              height: '100%',
+              fontFamily: 'Open Sans, sans-serif',
+              toolbar: { show: false }, // Hilangkan ikon kamera/zoom
+              zoom: { enabled: false }
+          },
+          colors: ['#143D11'], // Hijau Primary Anda
+          dataLabels: { enabled: false }, // Jangan tampilkan angka di atas titik
+          stroke: {
+              curve: 'smooth', // Lengkungan elegan ApexCharts (lebih pintar dari Plotly)
+              width: 3
+          },
+          fill: {
+              type: 'gradient',
+              gradient: {
+                  shadeIntensity: 1,
+                  opacityFrom: 0.4,
+                  opacityTo: 0.05,
+                  stops: [0, 90, 100]
+              }
+          },
+          xaxis: {
+              categories: {{ chart_labels|safe }},
+              axisBorder: { show: false },
+              axisTicks: { show: false },
+              tooltip: { enabled: false }
+          },
+          yaxis: {
+              labels: {
+                  formatter: function (value) {
+                      // Format angka menjadi Rp 1.000.000 secara otomatis
+                      return "Rp " + value.toLocaleString('id-ID');
+                  }
+              }
+          },
+          grid: {
+              borderColor: '#e8ead6',
+              strokeDashArray: 4, // Garis putus-putus minimalis
+              yaxis: { lines: { show: true } },
+              xaxis: { lines: { show: false } }
+          },
+          tooltip: {
+              y: {
+                  formatter: function (value) {
+                      return "Rp " + value.toLocaleString('id-ID');
+                  }
+              }
+          }
+      };
 
-    var chart = new ApexCharts(document.querySelector("#revenueChart"), options);
-    chart.render();
-});
+      var chart = new ApexCharts(document.querySelector("#revenueChart"), options);
+      chart.render();
+  });
 </script>
 {% endblock %}

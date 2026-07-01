@@ -1,0 +1,14 @@
+.env
+media/*
+*.md
+.github/*
+__pycache__/
+**/__pycache__/
+
+# pengecualian file README.md
+!README.md
+__pycache__/
+*.pyc
+incubator.db
+.venv/
+node_modules/

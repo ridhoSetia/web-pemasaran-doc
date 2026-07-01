@@ -163,3 +163,56 @@ function cariLokasi() {
             btnCari.disabled = false
         })
 }
+
+function requestOTP() {
+    const hpInput = document.getElementById('hp').value;
+    const btnOtp = document.getElementById('btn-otp');
+    const otpMessage = document.getElementById('otp-message');
+
+    // 1. Validasi Input Kosong
+    if (!hpInput || hpInput.length < 9) {
+        if (typeof showToast === 'function') {
+            showToast('Silakan masukkan nomor WhatsApp yang valid terlebih dahulu.', 'error');
+        } else {
+            alert('Silakan masukkan nomor WhatsApp yang valid terlebih dahulu.');
+        }
+        document.getElementById('hp').focus();
+        return;
+    }
+
+    // 2. Simpan tampilan awal tombol
+    const originalContent = btnOtp.innerHTML;
+
+    // 3. Ubah tombol menjadi mode Loading / Memproses
+    btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Mengirim...`;
+    btnOtp.disabled = true;
+    btnOtp.classList.add('opacity-70', 'cursor-not-allowed');
+
+    // 4. Simulasi Jaringan (Jeda 1.5 detik seolah sedang mengirim pesan)
+    setTimeout(() => {
+        // Ubah tombol menjadi sukses
+        btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span> Terkirim`;
+        btnOtp.classList.replace('bg-primary', 'bg-green-600'); // Ubah warna jadi hijau
+        
+        // Ubah teks panduan di bawah form
+        otpMessage.innerHTML = `<span class="material-symbols-outlined text-[14px] text-green-600">mark_email_read</span> OTP telah dikirim ke <b>${hpInput}</b>. Cek WhatsApp Anda.`;
+        otpMessage.classList.add('text-green-700');
+
+        // Munculkan Notifikasi Pop-up (Memanggil fungsi dari base_web.html)
+        if (typeof showToast === 'function') {
+            showToast('Kode OTP berhasil dikirim ke WhatsApp Anda.', 'success');
+        }
+
+        // Fokuskan kursor otomatis ke kolom OTP
+        document.getElementById('otp').focus();
+
+        // Kembalikan tombol ke kondisi semula setelah 5 detik (opsional)
+        setTimeout(() => {
+            btnOtp.innerHTML = originalContent;
+            btnOtp.disabled = false;
+            btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');
+            btnOtp.classList.replace('bg-green-600', 'bg-primary');
+        }, 5000);
+
+    }, 1500); // Waktu tunggu 1.5 detik
+}

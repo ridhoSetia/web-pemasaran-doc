@@ -5,95 +5,18 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>{% block title %} {{ toko.nama_toko }} | Peternakan Ayam KUB {% endblock %}</title>
     <link rel="icon" href="data:,">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              "primary":                   "#154212",
-              "on-primary":                "#FFFFFF",
-              "primary-container":         "#2D5A27",
-              "on-primary-container":      "#9DD090",
-              "primary-fixed":             "#BCF0AE",
-              "primary-fixed-dim":         "#A1D494",
-              "on-primary-fixed":          "#002201",
-              "on-primary-fixed-variant":  "#23501E",
-              "inverse-primary":           "#A1D494",
-              "secondary":                 "#D4A017",
-              "on-secondary":              "#3B2900",
-              "secondary-container":       "#FEF3C7",
-              "on-secondary-container":    "#7C5A00",
-              "secondary-fixed":           "#FEF3C7",
-              "secondary-fixed-dim":       "#F5DD8A",
-              "on-secondary-fixed":        "#3B2900",
-              "on-secondary-fixed-variant":"#7C5A00",
-              "tertiary":                  "#2E3E20",
-              "on-tertiary":               "#FFFFFF",
-              "tertiary-container":        "#455535",
-              "on-tertiary-container":     "#B6C9A0",
-              "tertiary-fixed":            "#C6DDB8",
-              "tertiary-fixed-dim":        "#AAC89D",
-              "on-tertiary-fixed":         "#0F2A0A",
-              "on-tertiary-fixed-variant": "#30502A",
-              "background":                "#FAF7F0",
-              "on-background":             "#161A14",
-              "surface":                   "#F5F1E8",
-              "on-surface":                "#161A14",
-              "surface-variant":           "#EDE8DD",
-              "on-surface-variant":        "#3D4B3A",
-              "surface-dim":               "#D8D2C5",
-              "surface-bright":            "#FAF7F0",
-              "surface-tint":              "#3B6934",
-              "surface-container-lowest":  "#FFFFFF",
-              "surface-container-low":     "#F5F1E8",
-              "surface-container":         "#EDE8DD",
-              "surface-container-high":    "#E8E2D6",
-              "surface-container-highest": "#DDD7CA",
-              "inverse-surface":           "#2A2820",
-              "inverse-on-surface":        "#F5F1E8",
-              "outline":                   "#6B7A68",
-              "outline-variant":           "#C8BFB0",
-              "error":                     "#BA1A1A",
-              "on-error":                  "#FFFFFF",
-              "error-container":           "#FFDAD6",
-              "on-error-container":        "#93000A",
-            },
-            borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' },
-            spacing: { xl: '40px', gutter: '20px', unit: '4px', md: '16px', sm: '8px', xs: '4px', 'container-margin': '32px', lg: '24px', 'container-max': '1280px', xxl: '48px' },
-            fontFamily: {
-              'label-sm': ['Open Sans', 'sans-serif'],
-              h3: ['Open Sans', 'sans-serif'],
-              h1: ['Open Sans', 'sans-serif'],
-              h2: ['Open Sans', 'sans-serif'],
-              'body-lg': ['Open Sans', 'sans-serif'],
-              'body-md': ['Open Sans', 'sans-serif']
-            },
-            fontSize: {
-              h1: ['36px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
-              h2: ['28px', { lineHeight: '1.3', fontWeight: '600' }],
-              h3: ['20px', { lineHeight: '1.4', fontWeight: '600' }],
-              'body-lg': ['15px', { lineHeight: '1.6', fontWeight: '400' }],
-              'body-md': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
-              'label-sm': ['12px', { lineHeight: '1.2', letterSpacing: '0.05em', fontWeight: '600' }],
-              caption: ['11px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '300' }]
-            }
-          }
-        }
-      }
-    </script>
     {% load static %}
+    <link rel="stylesheet" href="{% static 'css/tailwind-output.css' %}">
     <link rel="stylesheet" href="{% static 'css/base_web.css' %}">
   </head>
   
   <body class="bg-background font-body-md text-on-background flex flex-col min-h-screen">
-    <header class="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm" aria-label="Navigasi Utama">
+    
+    <header class="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm relative" aria-label="Navigasi Utama">
       <div class="flex justify-between items-center h-20 px-lg max-w-container-max mx-auto">
         <a href="{% url 'store:index' %}" class="font-h3 text-h3 font-black tracking-tight text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="Beranda DOC Mart">{{toko.nama_toko}}</a>
 
@@ -105,14 +28,32 @@
         </nav>
 
         <div class="flex items-center gap-lg">
-          <div class="flex items-center gap-md">
-            <button type="button" aria-label="Cari Produk" class="lg:hidden cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined" aria-hidden="true">search</span></button>
+          <div class="flex items-center">
+            
             <a href="{% url 'store:cart' %}" aria-label="Keranjang Belanja" class="cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary">
               <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
               <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-background hidden">0</span>
             </a>
+
+            <button id="mobile-menu-btn" type="button" aria-label="Buka Menu" class="md:hidden cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+                <span id="mobile-menu-icon" class="material-symbols-outlined" aria-hidden="true">menu</span>
+            </button>
           </div>
         </div>
+      </div>
+
+<div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-surface-container-lowest border-b border-outline-variant/30 shadow-2xl z-[60] transition-all duration-300">
+        <nav class="flex flex-col p-4 gap-2" aria-label="Menu Mobile">
+          <a href="{% url 'store:index' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors {% active_link 'store:index' 'bg-primary/10 text-primary font-bold' 'text-on-surface-variant hover:bg-surface-container font-medium' strict=True %}">
+            <span class="material-symbols-outlined text-[20px]">home</span> Beranda
+          </a>
+          <a href="{% url 'store:market' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors {% active_link 'store:market' 'bg-primary/10 text-primary font-bold' 'text-on-surface-variant hover:bg-surface-container font-medium' strict=True %}">
+            <span class="material-symbols-outlined text-[20px]">storefront</span> Katalog Produk
+          </a>
+          <a href="{% url 'store:track_order' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors {% active_link 'store:track_order' 'bg-primary/10 text-primary font-bold' 'text-on-surface-variant hover:bg-surface-container font-medium' strict=True %}">
+            <span class="material-symbols-outlined text-[20px]">local_shipping</span> Cek Pesanan
+          </a>
+        </nav>
       </div>
     </header>
 
@@ -160,7 +101,7 @@
         }
       }
       
-      // 2. Fungsi Memunculkan Notifikasi ala DOC Mart (Dipanggil dari JS lain)
+      // 2. Fungsi Memunculkan Notifikasi ala DOC Mart
       function showToast(message, type = 'error') {
           const container = document.getElementById('toast-container');
           const toast = document.createElement('div');
@@ -191,10 +132,38 @@
           }, 3500);
       }
 
-      // 3. Menghilangkan Notifikasi Bawaan Django secara otomatis
+      // 3. Sistem Mobile Navigasi & Hilangkan Notif Django
       document.addEventListener('DOMContentLoaded', function() {
           updateCartBadge(); // Update keranjang saat halaman dimuat
 
+          // Logika Buka/Tutup Mobile Menu
+          const mobileBtn = document.getElementById('mobile-menu-btn');
+          const mobileMenu = document.getElementById('mobile-menu');
+          const mobileIcon = document.getElementById('mobile-menu-icon');
+
+          if (mobileBtn && mobileMenu) {
+              mobileBtn.addEventListener('click', function(e) {
+                  e.stopPropagation();
+                  mobileMenu.classList.toggle('hidden');
+                  
+                  // Ganti Ikon saat dibuka/ditutup
+                  if (mobileMenu.classList.contains('hidden')) {
+                      mobileIcon.textContent = 'menu';
+                  } else {
+                      mobileIcon.textContent = 'close';
+                  }
+              });
+
+              // Tutup menu jika klik di tempat kosong pada layar
+              document.addEventListener('click', function(e) {
+                  if (!mobileMenu.contains(e.target) && !mobileBtn.contains(e.target) && !mobileMenu.classList.contains('hidden')) {
+                      mobileMenu.classList.add('hidden');
+                      mobileIcon.textContent = 'menu';
+                  }
+              });
+          }
+
+          // Hilangkan Notifikasi Django Otomatis
           const djangoToasts = document.querySelectorAll('.toast-message');
           djangoToasts.forEach(toast => {
               setTimeout(() => {
