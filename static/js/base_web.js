@@ -28,7 +28,7 @@ if (badge) {
 }
 }
 
-// 2. Fungsi Memunculkan Notifikasi ala DOC Mart (Dipanggil dari JS lain)
+// 2. Fungsi Memunculkan Notifikasi ala Kelompok Tani Melati (Dipanggil dari JS lain)
 function showToast(message, type = 'error') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');

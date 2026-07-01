@@ -1,5 +1,5 @@
 """
-Celery tasks for DOC Mart async operations.
+Celery tasks for Kelompok Tani Melati async operations.
 Used for: Image processing, email sending, background jobs.
 """
 from celery import shared_task

@@ -676,8 +676,10 @@ def checkout_process(request):
             allowed_domains = settings.ALLOWED_HOSTS
             domain = allowed_domains[0] if allowed_domains else 'localhost'
             protocol = 'https' if not settings.DEBUG else 'http'
-            link_faktur = f"{protocol}://{domain}/invoice/{order.order_id}/"
-            
+
+            link_faktur_admin = f"{protocol}://{domain}/pengelola/orders/{order.id}/invoice/"
+            link_faktur_pelanggan = f"{protocol}://{domain}/track/"
+
             maps_url = f"https://www.google.com/maps?q={lat},{lng}" if pengiriman == 'ANT' else "Diambil sendiri."
 
             pesan_admin = (
@@ -686,7 +688,7 @@ def checkout_process(request):
                 f"Pembeli: {order.nama_pembeli}\n"
                 f"No HP: {order.nomor_hp}\n"
                 f"Total Akhir: Rp{order.total_harga:,.0f}\n\n"
-                f"Buka Faktur Lengkap:\n{link_faktur}\n\n"
+                f"Buka Faktur Lengkap:\n{link_faktur_admin}\n\n"
                 f"Lokasi Peta: {maps_url}"
             )
 
@@ -696,7 +698,7 @@ def checkout_process(request):
                 f"Pesanan Anda dengan ID *{order.order_id}* telah kami terima dan sedang kami proses.\n\n"
                 f"Total Tagihan: *Rp{order.total_harga:,.0f}*\n\n"
                 f"CEK STATUS & FAKTUR PESANAN ANDA DI SINI:\n"
-                f"{link_faktur}\n\n"
+                f"{link_faktur_pelanggan}\n\n"
             )
 
             pesan_pelanggan += "Jika Anda merasa tidak memesan, tolong chat nomor ini untuk konfirmasi. Terima kasih!"
@@ -771,7 +773,7 @@ def send_otp_wa(request):
 
         # 3. Pesan yang dikirim ke Pelanggan
         pesan = (
-            f"*VERIFIKASI DOC MART*\n\n"
+            f"*VERIFIKASI Kelompok Tani Melati*\n\n"
             f"Kode Rahasia (OTP) Anda adalah: *{otp}*\n\n"
             f"Kode ini digunakan untuk verifikasi pesanan. *JANGAN* berikan kode ini kepada siapapun."
         )

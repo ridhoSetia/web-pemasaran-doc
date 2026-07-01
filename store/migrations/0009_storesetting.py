@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='StoreSetting',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nama_toko', models.CharField(default='DOC Mart', max_length=100)),
+                ('nama_toko', models.CharField(default='Kelompok Tani Melati', max_length=100)),
                 ('nomor_admin', models.CharField(default='0895704050703', help_text='Nomor WA untuk notifikasi pesanan (Fonnte)', max_length=20)),
                 ('alamat_toko', models.TextField(blank=True, default='Jl. Peternakan No. 1, Desa Mulawarman')),
             ],

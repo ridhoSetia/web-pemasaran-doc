@@ -140,7 +140,7 @@ class StoreSetting(models.Model):
     Model Singleton untuk menyimpan konfigurasi utama website.
     Hanya akan ada 1 baris data di database untuk pengaturan ini.
     """
-    nama_toko = models.CharField(max_length=100, default="DOC Mart")
+    nama_toko = models.CharField(max_length=100, default="Kelompok Tani Melati")
     nomor_admin = models.CharField(max_length=20, default="0895704050703", help_text="Nomor WA untuk notifikasi pesanan (Fonnte)")
     alamat_toko = models.TextField(blank=True, default="Jl. Peternakan No. 1, Desa Mulawarman")
     

@@ -18,7 +18,7 @@
     
     <header class="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 shadow-sm relative" aria-label="Navigasi Utama">
       <div class="flex justify-between items-center h-20 px-lg max-w-container-max mx-auto">
-        <a href="{% url 'store:index' %}" class="font-h3 text-h3 font-black tracking-tight text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="Beranda DOC Mart">{{toko.nama_toko}}</a>
+        <a href="{% url 'store:index' %}" class="font-h3 text-h3 font-black tracking-tight text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="Beranda Kelompok Tani Melati">{{toko.nama_toko}}</a>
 
         <nav class="hidden md:flex items-center gap-xl text-body-md" aria-label="Menu Utama">
           {% load active_link_tags %}
@@ -101,7 +101,7 @@
         }
       }
       
-      // 2. Fungsi Memunculkan Notifikasi ala DOC Mart
+      // 2. Fungsi Memunculkan Notifikasi ala Kelompok Tani Melati
       function showToast(message, type = 'error') {
           const container = document.getElementById('toast-container');
           const toast = document.createElement('div');

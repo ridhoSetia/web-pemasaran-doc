@@ -69,7 +69,7 @@ function togglePengiriman() {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ' + '&copy; <a href="https://carto.com/attributions">CARTO</a>'
                 }).addTo(map)
 
-                L.marker([farmLat, farmLng]).addTo(map).bindPopup('<b>Peternakan DOC Mart</b>').openPopup()
+                L.marker([farmLat, farmLng]).addTo(map).bindPopup('<b>Peternakan Kelompok Tani Melati</b>').openPopup()
 
                 map.on('click', function (e) {
                     updateLokasiPengiriman(e.latlng.lat, e.latlng.lng)
@@ -164,13 +164,13 @@ function cariLokasi() {
         })
 }
 
-function requestOTP() {
+async function requestOTP() {
     const hpInput = document.getElementById('hp').value;
     const btnOtp = document.getElementById('btn-otp');
     const otpMessage = document.getElementById('otp-message');
 
     // 1. Validasi Input Kosong
-    if (!hpInput || hpInput.length < 9) {
+    if (!hpInput || hpInput.length < 10) {
         if (typeof showToast === 'function') {
             showToast('Silakan masukkan nomor WhatsApp yang valid terlebih dahulu.', 'error');
         } else {
@@ -180,6 +180,9 @@ function requestOTP() {
         return;
     }
 
+    // Ambil token CSRF Django dari form (Wajib untuk request POST agar tidak di-blokir keamanan Django)
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
     // 2. Simpan tampilan awal tombol
     const originalContent = btnOtp.innerHTML;
 
@@ -188,31 +191,66 @@ function requestOTP() {
     btnOtp.disabled = true;
     btnOtp.classList.add('opacity-70', 'cursor-not-allowed');
 
-    // 4. Simulasi Jaringan (Jeda 1.5 detik seolah sedang mengirim pesan)
-    setTimeout(() => {
-        // Ubah tombol menjadi sukses
-        btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span> Terkirim`;
-        btnOtp.classList.replace('bg-primary', 'bg-green-600'); // Ubah warna jadi hijau
-        
-        // Ubah teks panduan di bawah form
-        otpMessage.innerHTML = `<span class="material-symbols-outlined text-[14px] text-green-600">mark_email_read</span> OTP telah dikirim ke <b>${hpInput}</b>. Cek WhatsApp Anda.`;
-        otpMessage.classList.add('text-green-700');
+    try {
+        // 4. Kirim Request Data ke API Django
+        const response = await fetch('/api/send-otp/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken // Token Keamanan
+            },
+            body: JSON.stringify({ hp: hpInput })
+        });
 
-        // Munculkan Notifikasi Pop-up (Memanggil fungsi dari base_web.html)
-        if (typeof showToast === 'function') {
-            showToast('Kode OTP berhasil dikirim ke WhatsApp Anda.', 'success');
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+            // JIKA BERHASIL MENGIRIM OTP
+            btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span> Terkirim`;
+            btnOtp.classList.replace('bg-primary', 'bg-green-600'); 
+            
+            otpMessage.innerHTML = `<span class="material-symbols-outlined text-[14px] text-green-600">mark_email_read</span> OTP telah dikirim ke <b>${hpInput}</b>. Cek WhatsApp Anda.`;
+            otpMessage.classList.add('text-green-700');
+
+            if (typeof showToast === 'function') {
+                // Pastikan fungsi showToast mendukung notif sukses (di base_web.html)
+                showToast(data.message || 'Kode OTP berhasil dikirim ke WhatsApp Anda.', 'success');
+            }
+
+            document.getElementById('otp').focus();
+
+            // Hitung Mundur (Cooldown 60 detik) sebelum bisa kirim ulang OTP
+            let countdown = 60;
+            const interval = setInterval(() => {
+                countdown--;
+                btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">timer</span> Tunggu (${countdown}s)`;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    btnOtp.innerHTML = originalContent; // Kembalikan tombol seperti semula
+                    btnOtp.disabled = false;
+                    btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');
+                    btnOtp.classList.replace('bg-green-600', 'bg-primary');
+                }
+            }, 1000);
+
+        } else {
+            // JIKA API MERESPON DENGAN ERROR (Misal: Batas limit pengiriman tercapai / nomor tidak valid)
+            throw new Error(data.message || "Gagal mengirim pesan dari sistem.");
         }
 
-        // Fokuskan kursor otomatis ke kolom OTP
-        document.getElementById('otp').focus();
-
-        // Kembalikan tombol ke kondisi semula setelah 5 detik (opsional)
-        setTimeout(() => {
-            btnOtp.innerHTML = originalContent;
-            btnOtp.disabled = false;
-            btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');
-            btnOtp.classList.replace('bg-green-600', 'bg-primary');
-        }, 5000);
-
-    }, 1500); // Waktu tunggu 1.5 detik
+    } catch (error) {
+        // Tangkap Error (Baik dari API maupun gangguan jaringan)
+        console.error("OTP Error:", error);
+        
+        // Kembalikan tombol ke bentuk semula agar user bisa coba lagi
+        btnOtp.innerHTML = originalContent;
+        btnOtp.disabled = false;
+        btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');
+        
+        if (typeof showToast === 'function') {
+            showToast(error.message || 'Gagal terhubung ke server untuk mengirim OTP.', 'error');
+        } else {
+            alert(error.message || 'Gagal terhubung ke server.');
+        }
+    }
 }

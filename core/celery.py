@@ -1,5 +1,5 @@
 """
-Celery configuration for DOC Mart async tasks.
+Celery configuration for Kelompok Tani Melati async tasks.
 Used for: Image processing, email sending, background jobs.
 """
 import os
