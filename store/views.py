@@ -674,7 +674,7 @@ def checkout_process(request):
             nomor_admin = pengaturan_toko.nomor_admin
             
             allowed_domains = settings.ALLOWED_HOSTS
-            domain = allowed_domains[0] if allowed_domains else 'localhost'
+            domain = "kelompoktanimelati.id"
             protocol = 'https' if not settings.DEBUG else 'http'
 
             link_faktur_admin = f"{protocol}://{domain}/pengelola/orders/{order.id}/invoice/"
@@ -701,7 +701,7 @@ def checkout_process(request):
                 f"{link_faktur_pelanggan}\n\n"
             )
 
-            pesan_pelanggan += "Tolong ketika tidak, jika merasa tidak memesan, dan ya jikga memesan. Terima kasih!"
+            pesan_pelanggan += "Ketik ya jika memesan dan tidak jika tidak merasa memesan. Terima kasih!"
 
             try:
                 requests.post(
