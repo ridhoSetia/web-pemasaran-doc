@@ -27,22 +27,24 @@
           <a class="{% active_link 'store:track_order' 'text-primary font-bold border-b-2 border-primary pb-1' 'text-on-surface-variant hover:text-primary transition-colors' strict=True %}" href="{% url 'store:track_order' %}">Cek Pesanan</a>
         </nav>
 
-        <div class="flex items-center gap-lg">
-          <div class="flex items-center">
+        <div class="flex items-center gap-1 sm:gap-2">
             
-            <a href="{% url 'store:cart' %}" aria-label="Keranjang Belanja" class="cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary">
-              <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
-              <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-background hidden">0</span>
-            </a>
-
             <button id="mobile-menu-btn" type="button" aria-label="Buka Menu" class="md:hidden cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
                 <span id="mobile-menu-icon" class="material-symbols-outlined" aria-hidden="true">menu</span>
             </button>
-          </div>
+            
+            <a href="{% url 'store:cart' %}" aria-label="Keranjang Belanja" class="cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary">
+              <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-background hidden">0</span>
+              <span class="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
+            </a>
+            
+            <a href="{% url 'store:login' %}" aria-label="Akun Pengguna" class="hidden md:flex cursor-pointer p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+              <span class="material-symbols-outlined" aria-hidden="true">person</span>
+            </a>
         </div>
       </div>
 
-<div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-surface-container-lowest border-b border-outline-variant/30 shadow-2xl z-[60] transition-all duration-300">
+      <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-surface-container-lowest border-b border-outline-variant/30 shadow-2xl z-[60] transition-all duration-300">
         <nav class="flex flex-col p-4 gap-2" aria-label="Menu Mobile">
           <a href="{% url 'store:index' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors {% active_link 'store:index' 'bg-primary/10 text-primary font-bold' 'text-on-surface-variant hover:bg-surface-container font-medium' strict=True %}">
             <span class="material-symbols-outlined text-[20px]">home</span> Beranda
@@ -52,6 +54,12 @@
           </a>
           <a href="{% url 'store:track_order' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors {% active_link 'store:track_order' 'bg-primary/10 text-primary font-bold' 'text-on-surface-variant hover:bg-surface-container font-medium' strict=True %}">
             <span class="material-symbols-outlined text-[20px]">local_shipping</span> Cek Pesanan
+          </a>
+          
+          <div class="h-[1px] w-full bg-outline-variant/30 my-2" role="separator"></div>
+          
+          <a href="{% url 'store:login' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors text-on-surface-variant hover:bg-surface-container font-medium">
+            <span class="material-symbols-outlined text-[20px]">person</span>
           </a>
         </nav>
       </div>
@@ -101,7 +109,7 @@
         }
       }
       
-      // 2. Fungsi Memunculkan Notifikasi ala Kelompok Tani Melati
+      // 2. Fungsi Memunculkan Notifikasi
       function showToast(message, type = 'error') {
           const container = document.getElementById('toast-container');
           const toast = document.createElement('div');
@@ -134,7 +142,7 @@
 
       // 3. Sistem Mobile Navigasi & Hilangkan Notif Django
       document.addEventListener('DOMContentLoaded', function() {
-          updateCartBadge(); // Update keranjang saat halaman dimuat
+          updateCartBadge(); 
 
           // Logika Buka/Tutup Mobile Menu
           const mobileBtn = document.getElementById('mobile-menu-btn');
@@ -146,7 +154,6 @@
                   e.stopPropagation();
                   mobileMenu.classList.toggle('hidden');
                   
-                  // Ganti Ikon saat dibuka/ditutup
                   if (mobileMenu.classList.contains('hidden')) {
                       mobileIcon.textContent = 'menu';
                   } else {
@@ -154,7 +161,6 @@
                   }
               });
 
-              // Tutup menu jika klik di tempat kosong pada layar
               document.addEventListener('click', function(e) {
                   if (!mobileMenu.contains(e.target) && !mobileBtn.contains(e.target) && !mobileMenu.classList.contains('hidden')) {
                       mobileMenu.classList.add('hidden');

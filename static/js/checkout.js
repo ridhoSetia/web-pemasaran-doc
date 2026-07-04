@@ -42,9 +42,13 @@ function updateTotalUI(ongkir) {
 }
 
 // Peta & Logistik
-let map, routingControl, userMarker
-const farmLat = -0.44875377355076096
-const farmLng = 117.09608147598206
+// ==========================================
+let map, routingControl, userMarker;
+
+// 1. Fungsi penarik koordinat dan harga dari HTML (Pengaturan Admin)
+const getStoreLat = () => parseFloat(document.getElementById('store_lat_setting')?.value) || -0.5020;
+const getStoreLng = () => parseFloat(document.getElementById('store_lng_setting')?.value) || 117.1530;
+const getBiayaKm = () => parseInt(document.getElementById('biaya_per_km_setting')?.value) || 5000;
 
 function togglePengiriman() {
     const isAntar = document.querySelector('input[name="pengiriman"]:checked').value === 'ANT'
@@ -59,17 +63,26 @@ function togglePengiriman() {
             setTimeout(() => {
                 const batasIndonesia = L.latLngBounds(L.latLng(-11.0, 94.0), L.latLng(6.0, 141.0))
 
-                map = L.map('map', {
-                    maxBounds: batasIndonesia,
-                    maxBoundsViscosity: 1.0,
-                    minZoom: 5
-                }).setView([farmLat, farmLng], 12)
+                // Inisialisasi Peta (Titik tengah mengikuti data dinamis getStoreLat & getStoreLng)
+                map = L.map('map').setView([getStoreLat(), getStoreLng()], 13);
 
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ' + '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }).addTo(map)
+                // Tambahkan Tombol Full Screen
+                if (L.control.fullscreen) {
+                    L.control.fullscreen({
+                        position: 'topleft',
+                        title: 'Layar Penuh',
+                        titleCancel: 'Keluar Layar Penuh'
+                    }).addTo(map);
+                }
 
-                L.marker([farmLat, farmLng]).addTo(map).bindPopup('<b>Peternakan Kelompok Tani Melati</b>').openPopup()
+                // Layer Satelit
+                L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    attribution: '© <a href="https://maps.google.com">Google Maps</a>'
+                }).addTo(map);
+
+                // Marker Toko (Juga mengikuti koordinat dinamis)
+                L.marker([getStoreLat(), getStoreLng()]).addTo(map).bindPopup('<b>Titik Peternakan / Toko</b>').openPopup()
 
                 map.on('click', function (e) {
                     updateLokasiPengiriman(e.latlng.lat, e.latlng.lng)
@@ -97,8 +110,9 @@ function updateLokasiPengiriman(lat, lng) {
         routingControl = null
     }
 
+    // Tarik Garis Rute (Dari koordinat toko dinamis ke titik klik)
     routingControl = L.Routing.control({
-        waypoints: [L.latLng(farmLat, farmLng), L.latLng(lat, lng)],
+        waypoints: [L.latLng(getStoreLat(), getStoreLng()), L.latLng(lat, lng)],
         routeWhileDragging: false,
         addWaypoints: false,
         fitSelectedRoutes: true,
@@ -109,23 +123,26 @@ function updateLokasiPengiriman(lat, lng) {
         const distanceKm = (e.routes[0].summary.totalDistance / 1000).toFixed(2)
         document.getElementById('jarakInput').value = distanceKm
 
-        const biayaOngkir = Math.round(distanceKm * 5000) 
+        // Ongkir dinamis
+        const biayaOngkir = Math.round(distanceKm * getBiayaKm()) 
         updateTotalUI(biayaOngkir)
 
         const infoJarak = document.getElementById('infoJarak')
-        infoJarak.innerHTML = `<span class="material-symbols-outlined text-[18px]">route</span> ` + `Jarak: <strong>${distanceKm} km</strong> (Ongkir: ${formatRupiah(biayaOngkir)})`
+        infoJarak.innerHTML = `<span class="material-symbols-outlined text-[18px]">route</span> Jarak: <strong>${distanceKm} km</strong> (Ongkir: ${formatRupiah(biayaOngkir)})`
         infoJarak.classList.remove('hidden')
     })
 
     routingControl.on('routingerror', function () {
-        const distanceKm = (map.distance([farmLat, farmLng], [lat, lng]) / 1000).toFixed(2)
+        // Fallback jarak lurus jika rute jalan tidak ditemukan (Menggunakan titik toko dinamis)
+        const distanceKm = (map.distance([getStoreLat(), getStoreLng()], [lat, lng]) / 1000).toFixed(2)
         document.getElementById('jarakInput').value = distanceKm
 
-        const biayaOngkir = Math.round(distanceKm * 5000)
+        // Ongkir dinamis
+        const biayaOngkir = Math.round(distanceKm * getBiayaKm())
         updateTotalUI(biayaOngkir)
 
         const infoJarak = document.getElementById('infoJarak')
-        infoJarak.innerHTML = `<span class="material-symbols-outlined text-[18px]">route</span> ` + `Jarak estimasi: <strong>${distanceKm} km</strong> (Ongkir: ${formatRupiah(biayaOngkir)})`
+        infoJarak.innerHTML = `<span class="material-symbols-outlined text-[18px]">route</span> Jarak estimasi lurus: <strong>${distanceKm} km</strong> (Ongkir: ${formatRupiah(biayaOngkir)})`
         infoJarak.classList.remove('hidden')
     })
 }
@@ -142,7 +159,7 @@ function cariLokasi() {
     btnCari.innerHTML = 'Mencari...'
     btnCari.disabled = true
 
-    fetch(`https://nominatim.openstreetmap.org/search?format=json` + `&q=${encodeURIComponent(query)}&countrycodes=id`)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=id`)
         .then((res) => res.json())
         .then((data) => {
             if (data && data.length > 0) {
@@ -169,7 +186,6 @@ async function requestOTP() {
     const btnOtp = document.getElementById('btn-otp');
     const otpMessage = document.getElementById('otp-message');
 
-    // 1. Validasi Input Kosong
     if (!hpInput || hpInput.length < 10) {
         if (typeof showToast === 'function') {
             showToast('Silakan masukkan nomor WhatsApp yang valid terlebih dahulu.', 'error');
@@ -180,24 +196,19 @@ async function requestOTP() {
         return;
     }
 
-    // Ambil token CSRF Django dari form (Wajib untuk request POST agar tidak di-blokir keamanan Django)
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // 2. Simpan tampilan awal tombol
     const originalContent = btnOtp.innerHTML;
 
-    // 3. Ubah tombol menjadi mode Loading / Memproses
     btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Mengirim...`;
     btnOtp.disabled = true;
     btnOtp.classList.add('opacity-70', 'cursor-not-allowed');
 
     try {
-        // 4. Kirim Request Data ke API Django
         const response = await fetch('/api/send-otp/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken // Token Keamanan
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ hp: hpInput })
         });
@@ -205,7 +216,6 @@ async function requestOTP() {
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
-            // JIKA BERHASIL MENGIRIM OTP
             btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span> Terkirim`;
             btnOtp.classList.replace('bg-primary', 'bg-green-600'); 
             
@@ -213,20 +223,18 @@ async function requestOTP() {
             otpMessage.classList.add('text-green-700');
 
             if (typeof showToast === 'function') {
-                // Pastikan fungsi showToast mendukung notif sukses (di base_web.html)
                 showToast(data.message || 'Kode OTP berhasil dikirim ke WhatsApp Anda.', 'success');
             }
 
             document.getElementById('otp').focus();
 
-            // Hitung Mundur (Cooldown 60 detik) sebelum bisa kirim ulang OTP
             let countdown = 60;
             const interval = setInterval(() => {
                 countdown--;
                 btnOtp.innerHTML = `<span class="material-symbols-outlined text-[18px]">timer</span> Tunggu (${countdown}s)`;
                 if (countdown <= 0) {
                     clearInterval(interval);
-                    btnOtp.innerHTML = originalContent; // Kembalikan tombol seperti semula
+                    btnOtp.innerHTML = originalContent;
                     btnOtp.disabled = false;
                     btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');
                     btnOtp.classList.replace('bg-green-600', 'bg-primary');
@@ -234,15 +242,11 @@ async function requestOTP() {
             }, 1000);
 
         } else {
-            // JIKA API MERESPON DENGAN ERROR (Misal: Batas limit pengiriman tercapai / nomor tidak valid)
             throw new Error(data.message || "Gagal mengirim pesan dari sistem.");
         }
 
     } catch (error) {
-        // Tangkap Error (Baik dari API maupun gangguan jaringan)
         console.error("OTP Error:", error);
-        
-        // Kembalikan tombol ke bentuk semula agar user bisa coba lagi
         btnOtp.innerHTML = originalContent;
         btnOtp.disabled = false;
         btnOtp.classList.remove('opacity-70', 'cursor-not-allowed');

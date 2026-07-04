@@ -701,7 +701,7 @@ def checkout_process(request):
                 f"{link_faktur_pelanggan}\n\n"
             )
 
-            pesan_pelanggan += "Jika Anda merasa tidak memesan, tolong chat nomor ini untuk konfirmasi. Terima kasih!"
+            pesan_pelanggan += "Tolong ketika tidak, jika merasa tidak memesan, dan ya jikga memesan. Terima kasih!"
 
             try:
                 requests.post(
@@ -806,7 +806,17 @@ def admin_settings(request):
         if 'save_web_settings' in request.POST:
             setting.nama_toko = request.POST.get('nama_toko', '').strip()
             setting.nomor_admin = request.POST.get('nomor_admin', '').strip()
-            setting.alamat_toko = request.POST.get('alamat_toko', '').strip()
+            setting.hero_title = request.POST.get('hero_title')
+            setting.hero_description = request.POST.get('hero_description')
+            setting.rekening_bank = request.POST.get('rekening_bank')
+            setting.rekening_nama = request.POST.get('rekening_nama')
+            setting.biaya_per_km = request.POST.get('biaya_per_km', 5000)
+            setting.latitude = request.POST.get('latitude')
+            setting.longitude = request.POST.get('longitude')
+            setting.alamat_toko = request.POST.get('alamat_toko')
+            if 'hero_image' in request.FILES:
+                setting.hero_image = request.FILES['hero_image']
+                
             setting.save()
             messages.success(request, "Pengaturan toko berhasil diperbarui!")
             return redirect('store:admin_settings')

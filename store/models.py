@@ -142,11 +142,41 @@ class StoreSetting(models.Model):
     """
     nama_toko = models.CharField(max_length=100, default="Kelompok Tani Melati")
     nomor_admin = models.CharField(max_length=20, default="0895704050703", help_text="Nomor WA untuk notifikasi pesanan (Fonnte)")
-    alamat_toko = models.TextField(blank=True, default="Jl. Peternakan No. 1, Desa Mulawarman")
-    
+    alamat_toko = models.TextField(blank=True, default="Bukit Pinang, Kota Samarinda, Kalimantan Timur")
+    hero_title = models.CharField(max_length=255, default="Penyedia DOC & Telur Fertil Ayam KUB Unggulan")
+    hero_description = models.TextField(default="Langsung dari peternak lokal tersertifikasi. Kami memastikan genetik unggul, tingkat daya tetas tinggi, dan jaminan kesehatan ternak Anda.")
+    rekening_bank = models.CharField(max_length=100, default="BCA 1234 5678 90")
+    rekening_nama = models.CharField(max_length=100, default="a.n. Kelompok Tani Melati Official")
+    biaya_per_km = models.IntegerField(default=5000, help_text="Biaya pengiriman per kilometer (Rp)")
+    latitude = models.CharField(max_length=50, default="-0.5020", help_text="Latitude lokasi toko")
+    longitude = models.CharField(max_length=50, default="117.1530", help_text="Longitude lokasi toko")
+    hero_image = models.ImageField(upload_to='settings/', null=True, blank=True, help_text="Gambar latar belakang halaman utama")
+
     def save(self, *args, **kwargs):
-        self.pk = 1 # Memaksa sistem agar hanya menimpa baris pertama (ID=1)
-        super(StoreSetting, self).save(*args, **kwargs)
+        if self.hero_image:
+            try:
+                # Buka gambar menggunakan Pillow
+                img = Image.open(self.hero_image)
+                
+                # Jika formatnya belum WEBP, kita konversi
+                if img.format != 'WEBP':
+                    output = BytesIO()
+                    # Convert ke RGB jika ada transparansi/format aneh agar aman jadi WebP
+                    if img.mode in ("RGBA", "P"):
+                        img = img.convert("RGB")
+                    
+                    img.save(output, format='WEBP', quality=80)
+                    output.seek(0)
+                    
+                    # Ubah ekstensi file menjadi .webp
+                    file_name = os.path.splitext(self.hero_image.name)[0] + '.webp'
+                    
+                    # Simpan file yang sudah dikonversi
+                    self.hero_image.save(file_name, ContentFile(output.read()), save=False)
+            except Exception as e:
+                print(f"Gagal mengonversi gambar Hero ke WebP: {e}")
+                
+        super().save(*args, **kwargs)
 
     @classmethod
     def load(cls):

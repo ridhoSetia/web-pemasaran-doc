@@ -242,9 +242,15 @@ CSP_CONNECT_SRC = (
     "'self'",
     "https://nominatim.openstreetmap.org",
     "https://api.fonnte.com",
+    "https://router.project-osrm.org",
 )
 
-CSP_FRAME_SRC = ("'none'",'https://challenges.cloudflare.com/')
+CSP_FRAME_SRC = (
+    "'none'",
+    'https://challenges.cloudflare.com/',
+    "https://maps.google.com",
+    "https://www.google.com",
+)
 CSP_BASE_URI = ("'self'",)
 
 # Fitur Penyelamat: Jika DEBUG=True (sedang masa dev lokal), CSP hanya akan 

@@ -5,47 +5,118 @@
 <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
   <div class="max-w-5xl mx-auto space-y-8">
     
-    <!-- 1. Form Pengaturan Informasi Website -->
-    <div class="bg-surface-container-lowest border border-outline-variant/50 rounded-2xl shadow-sm overflow-hidden">
+<!-- ========================================== -->
+    <!-- 1. FORM PENGATURAN TOKO & WEB -->
+    <!-- ========================================== -->
+    <!-- WAJIB ADA enctype="multipart/form-data" AGAR BISA UPLOAD GAMBAR -->
+    <form method="POST" enctype="multipart/form-data" class="bg-surface-container-lowest border border-outline-variant/50 rounded-2xl shadow-sm overflow-hidden">
+        {% csrf_token %}
+        <input type="hidden" name="save_web_settings" value="1">
+
+        <!-- Header Pengaturan -->
         <div class="bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-4 border-b border-primary/10 flex items-center gap-3">
             <div class="bg-primary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
                 <span class="material-symbols-outlined text-[20px]">storefront</span>
             </div>
-            <h3 class="font-bold text-lg text-primary">Informasi & Kontak Website</h3>
+            <h3 class="font-bold text-lg text-primary">Informasi & Pengaturan Web</h3>
         </div>
 
-      <form method="POST" class="p-6 md:p-8 space-y-6">
-        {% csrf_token %}
-        <input type="hidden" name="save_web_settings" value="1">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nama Toko/Peternakan</label>
-                <input type="text" name="nama_toko" value="{{ setting.nama_toko }}" required class="w-full bg-surface border border-outline-variant/50 rounded-xl px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-            </div>
-            <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nomor WA Notifikasi (Fonnte)</label>
-                <div class="relative group">
-                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors text-[20px]">call</span>
-                    <input type="text" name="nomor_admin" value="{{ setting.nomor_admin }}" required class="w-full bg-surface border border-outline-variant/50 rounded-xl pl-11 pr-4 py-3 text-sm font-bold text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all tracking-wide">
+        <!-- Isi Form -->
+        <div class="p-6 md:p-8 flex flex-col gap-12">
+
+            <!-- KELOMPOK 1: HALAMAN UTAMA -->
+            <div class="w-full">
+                <h4 class="text-[13px] font-bold text-on-surface-variant uppercase tracking-widest mb-5 pb-2 border-b border-outline-variant/50">Halaman Utama (Beranda)</h4>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Judul Utama (Hero Title)</label>
+                        <input type="text" name="hero_title" value="{{ setting.hero_title }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Deskripsi Utama (Hero Description)</label>
+                        <textarea name="hero_description" rows="3" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.hero_description }}</textarea>
+                    </div>
+                    
+                    <!-- INPUT UPLOAD GAMBAR DENGAN LIVE PREVIEW -->
+                    {% load static %}
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Gambar Latar (Hero Image)</label>
+                        
+                        <!-- Kotak Preview -->
+                        <div class="mb-4">
+                            <p class="text-[11px] text-on-surface-variant mb-2 uppercase tracking-wider font-bold">Preview Saat Ini:</p>
+                            <div class="relative w-full md:w-1/2 h-48 rounded-xl border-2 border-dashed border-outline-variant/50 overflow-hidden bg-surface-container-low flex items-center justify-center group">
+                                {% if setting.hero_image %}
+                                    <img id="image-preview" src="{{ setting.hero_image.url }}" alt="Preview Hero" class="w-full h-full object-cover">
+                                {% else %}
+                                    <!-- Fallback jika belum ada gambar yang diupload admin -->
+                                    <img id="image-preview" src="{% static 'images/kandang-ayam.webp' %}" alt="Preview Hero Default" class="w-full h-full object-cover opacity-40 mix-blend-luminosity">
+                                    <div id="no-image-text" class="absolute inset-0 flex flex-col items-center justify-center text-on-surface-variant bg-surface/30">
+                                        <span class="material-symbols-outlined text-[32px] mb-1">image</span>
+                                        <span class="text-xs font-bold">Menggunakan Gambar Bawaan</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Input File -->
+                        <input type="file" name="hero_image" id="hero_image_input" accept="image/*" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-2.5 text-sm font-medium text-on-surface-variant focus:border-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <p class="text-[11px] text-on-surface-variant mt-1.5">*Pilih file baru untuk mengganti gambar. Sistem otomatis mengonversinya ke WebP.</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- KELOMPOK 2: PEMBAYARAN -->
+            <div class="w-full">
+                <h4 class="text-[13px] font-bold text-on-surface-variant uppercase tracking-widest mb-5 pb-2 border-b border-outline-variant/50">Metode Pembayaran (Transfer)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Nama Bank & Nomor Rekening</label>
+                        <input type="text" name="rekening_bank" value="{{ setting.rekening_bank }}" placeholder="Contoh: BCA 1234 5678 90" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Atas Nama (Pemilik Rekening)</label>
+                        <input type="text" name="rekening_nama" value="{{ setting.rekening_nama }}" placeholder="Contoh: a.n. Kelompok Tani Melati" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- KELOMPOK 3: PENGIRIMAN & LOKASI -->
+            <div class="w-full">
+                <h4 class="text-[13px] font-bold text-on-surface-variant uppercase tracking-widest mb-5 pb-2 border-b border-outline-variant/50">Pengiriman & Titik Peta (Toko)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tarif Ongkir per KM (Rp)</label>
+                        <input type="number" name="biaya_per_km" value="{{ setting.biaya_per_km }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Latitude Toko</label>
+                        <input type="text" name="latitude" value="{{ setting.latitude }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Longitude Toko</label>
+                        <input type="text" name="longitude" value="{{ setting.longitude }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Alamat Lengkap Toko</label>
+                        <textarea name="alamat_toko" rows="2" placeholder="Contoh: Bukit Pinang, Kota Samarinda, Kalimantan Timur" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.alamat_toko }}</textarea>
+                        <p class="text-[11px] text-on-surface-variant mt-1.5">*Alamat ini akan ditampilkan di halaman utama (Beranda) untuk pelanggan yang ingin berkunjung.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Alamat Pengiriman/Peternakan</label>
-            <textarea name="alamat_toko" rows="3" required class="w-full bg-surface border border-outline-variant/50 rounded-xl px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.alamat_toko }}</textarea>
-        </div>
-        <div class="pt-4 flex justify-end border-t border-outline-variant/30 mt-2">
-            <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform active:scale-[0.98]">
-                <span class="material-symbols-outlined text-[20px]">save</span> Simpan Informasi
+
+        <!-- Tombol Simpan -->
+        <div class="bg-surface-container-low px-6 py-5 border-t border-outline-variant/30 flex justify-end">
+            <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2 transform active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[20px]">save</span> Simpan Pengaturan
             </button>
         </div>
-      </form>
-    </div>
+    </form>
 
-    <!-- 2. Form Keamanan (Ubah Password) - Desain Split Baru -->
     <div class="bg-surface-container-lowest border border-outline-variant/50 rounded-2xl shadow-sm overflow-hidden">
-        <!-- Header Keamanan -->
         <div class="bg-gradient-to-r from-tertiary/15 via-tertiary/5 to-transparent px-6 py-4 border-b border-tertiary/10 flex items-center gap-3">
             <div class="bg-tertiary text-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
                 <span class="material-symbols-outlined text-[20px]">security</span>
@@ -54,7 +125,6 @@
         </div>
 
         <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
-            <!-- Sisi Kiri: Edukasi/Info Keamanan -->
             <div class="w-full md:w-5/12 space-y-4">
                 <div class="bg-surface-variant/30 p-6 rounded-2xl border border-outline-variant/50 h-full flex flex-col justify-center relative overflow-hidden">
                     <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-outline-variant/30 relative z-10">
@@ -62,7 +132,7 @@
                     </div>
                     <h4 class="text-lg font-bold text-on-surface mb-2 relative z-10">Akses Terbatas</h4>
                     <p class="text-sm text-on-surface-variant leading-relaxed mb-6 relative z-10">
-                        Kata sandi Anda adalah kunci utama ke seluruh data pesanan, inventaris, dan pelanggan Kelompok Tani Melati.
+                        Kata sandi Anda adalah kunci utama ke seluruh data pesanan, inventaris, dan pelanggan Kelompok Tani.
                     </p>
                     <div class="space-y-3 relative z-10">
                         <div class="flex items-center gap-3 text-sm font-medium text-on-surface-variant">
@@ -81,17 +151,11 @@
                 </div>
             </div>
 
-            <!-- Sisi Kanan: Form Input Dinamis -->
             <div class="w-full md:w-7/12 flex flex-col justify-center">
                 <form method="POST" class="space-y-6">
                 {% csrf_token %}
                 <input type="hidden" name="save_password" value="1">
                 
-                <!-- 
-                    Magic Tailwind: Kita menggunakan arbritary variants [&_input] 
-                    untuk menata tag <input> bawaan dari Django {{ field }} secara otomatis.
-                    Sedangkan [&_ul] digunakan untuk merapikan teks bantuan (Syarat Password).
-                -->
                 <div class="space-y-5 
                             [&_input]:w-full [&_input]:bg-surface [&_input]:border [&_input]:border-outline-variant/50 
                             [&_input]:rounded-xl [&_input]:px-4 [&_input]:py-3.5 [&_input]:text-sm [&_input]:font-medium 

@@ -1,4 +1,7 @@
-{% extends 'store/web/base_web.html' %} {% block content %}
+{% extends 'store/web/base_web.html' %} 
+
+{% block content %}
+
 <div class="max-w-4xl mx-auto px-4 py-8">
   <div
     class="flex items-center gap-3 mb-8 border-b border-outline-variant pb-4"
@@ -85,11 +88,14 @@
               >
                 <span class="material-symbols-outlined">route</span>
               </div>
-              <div class="flex-1">
-                <p class="font-bold text-on-surface">Diantar ke Lokasi</p>
-                <p class="text-xs text-on-surface-variant mt-0.5">
-                  Rp5.000/km • Armada Kelompok Tani Melati
-                </p>
+              <input type="hidden" id="biaya_per_km_setting" value="{{ toko.biaya_per_km }}">
+              <input type="hidden" id="store_lat_setting" value="{{ toko.latitude }}">
+              <input type="hidden" id="store_lng_setting" value="{{ toko.longitude }}">
+              <div>
+                  <h3 class="font-bold text-on-surface">Diantar ke Lokasi</h3>
+                  <p class="text-sm text-on-surface-variant">
+                      Rp{{ toko.biaya_per_km|floatformat:0 }}/km &bull; Armada {{ toko.nama_toko }}
+                  </p>
               </div>
               <span
                 class="material-symbols-outlined text-primary opacity-0 peer-checked:opacity-100 transition-opacity"
@@ -136,7 +142,7 @@
 
           <div
             id="infoJarak"
-            class="hidden text-sm font-bold text-primary-container bg-primary p-4 rounded-xl flex items-center gap-3 shadow-sm"
+            class="hidden text-sm font-bold text-white bg-primary p-4 rounded-xl flex items-center gap-3 shadow-sm"
           ></div>
 
           <div>
@@ -243,11 +249,9 @@
           >
             <span class="material-symbols-outlined mt-0.5">info</span>
             <div>
-              <p class="font-medium mb-1">
-                Silakan transfer sesuai Grand Total ke rekening berikut:
-              </p>
-              <p class="font-bold text-lg">BCA 1234 5678 90</p>
-              <p class="text-xs opacity-80">a.n. Kelompok Tani Melati Official</p>
+              <p class="te1xt-sm font-medium text-on-secondary-container mb-1">Silakan transfer sesuai Grand Total ke rekening berikut:</p>
+              <p class="text-lg font-bold text-on-secondary-container">{{ toko.rekening_bank }}</p>
+              <p class="text-xs text-on-secondary-container/70">{{ toko.rekening_nama }}</p>
             </div>
           </div>
           <div>
@@ -400,16 +404,14 @@
   </form>
 </div>
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
-/>
-<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"></script>
 
 {% load static %}
 <script src="{% static 'js/checkout.js' %}"></script>
