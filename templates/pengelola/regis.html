@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrasi Admin | Kelompok Tani Melati</title>
+    {% load static %}
+    <link href="{% static 'css/tailwind-output.css' %}" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center font-sans p-6">
+
+    <div class="w-full max-w-lg">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h2 class="text-h1 text-primary tracking-tight">Registrasi Admin</h2>
+            <p class="text-body-lg text-on-surface-variant mt-2">Buat akun baru untuk sistem {{ toko.nama_toko|default:"Kelompok Tani Melati" }}</p>
+        </div>
+
+        <!-- "Kotak" yang menyatu (menggunakan shadow halus & background surface-container) -->
+        <div class="bg-surface-container p-8 md:p-10 rounded-xl shadow-xl border border-outline-variant/30">
+            
+            {% if messages %}
+                <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    <div class="p-3 text-label-sm rounded-xl font-bold flex items-center gap-2 {% if message.tags == 'error' %}bg-error-container text-on-error-container{% else %}bg-primary-fixed text-on-primary-fixed{% endif %}">
+                        <span class="material-symbols-outlined">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-wider">Email</label>
+                        <input type="email" name="email" required class="w-full bg-surface border border-outline rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-wider">Username</label>
+                        <input type="text" name="username" required class="w-full bg-surface border border-outline rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-wider">Password</label>
+                    <input type="password" name="password" required class="w-full bg-surface border border-outline rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                </div>
+
+                <!-- Kode Aktivasi (Warna Secondary khas sistem Anda) -->
+                <div class="space-y-1 pt-2">
+                    <label class="block text-[10px] font-black text-secondary uppercase tracking-wider">Kode Aktivasi Sistem *</label>
+                    <input type="password" name="kode_aktivasi" required placeholder=""
+                           class="w-full bg-secondary-container/30 border-2 border-secondary rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-secondary/20 outline-none transition-all">
+                </div>
+                
+                <button type="submit" 
+                    class="w-full bg-primary text-on-primary font-bold py-3.5 px-4 rounded-xl shadow-lg hover:bg-primary-container transition-all transform active:scale-[0.98]">
+                    Daftar Sekarang
+                </button>
+            </form>
+        </div>
+
+        <p class="mt-8 text-center text-body-md text-on-surface-variant">
+            Sudah punya akun? <a href="{% url 'store:login' %}" class="text-primary font-bold hover:underline">Masuk ke Dashboard</a>
+        </p>
+    </div>
+
+</body>
+</html>

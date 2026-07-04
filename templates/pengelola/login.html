@@ -83,6 +83,19 @@
                             <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
                         </button>
                     </div>
+                    
+                    <!-- Navigasi Tambahan -->
+                    <div class="pt-4 flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        <a href="/" class="hover:text-primary transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">home</span>
+                            Halaman Utama
+                        </a>
+                        <a href="{% url 'store:daftarpengelola' %}" class="hover:text-primary transition-colors flex items-center gap-1">
+                            Daftar Pengelola
+                            <span class="material-symbols-outlined text-[14px]">person_add</span>
+                        </a>
+                    </div>
+
                 </form>
             </div>    
         </div>
@@ -117,6 +130,25 @@
         </div>
 
     </div>
+
+{% if messages %}
+    <div id="login-alert" class="fixed top-5 right-5 z-50 animate-bounce">
+        {% for message in messages %}
+            <div class="bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center">
+                <span class="mr-2">⚠️</span>
+                {{ message }}
+                <button onclick="document.getElementById('login-alert').remove()" class="ml-4 font-bold text-lg">×</button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<script>
+    setTimeout(function() {
+        const alert = document.getElementById('login-alert');
+        if (alert) alert.style.display = 'none';
+    }, 5000);
+</script>
 
 </body>
 </html>

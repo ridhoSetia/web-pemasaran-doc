@@ -79,6 +79,11 @@ class CustomAdminLoginView(LoginView):
     template_name = 'pengelola/login.html'
     redirect_authenticated_user = True
 
+    def form_invalid(self, form):
+        # Tambahkan pesan error ke sistem messages Django saat login gagal
+        messages.error(self.request, "Username atau Password salah! Silakan coba lagi.")
+        return super().form_invalid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['turnstile_site_key'] = settings.CLOUDFLARE_TURNSTILE_SITE_KEY
@@ -855,3 +860,39 @@ def api_pending_orders(request):
             'waktu': timezone.localtime(o.order_date).strftime('%d %b %H:%M')
         })
     return JsonResponse({'count': total_proses, 'orders': data})
+
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.shortcuts import render, redirect
+
+def register_pengelola(request):
+    """ View untuk halaman /daftarpengelola di Django """
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        kode_aktivasi = request.POST.get('kode_aktivasi')
+
+        # Syarat mutlak: Kode aktivasi harus benar
+        if kode_aktivasi != 'inkubatordoc2026':
+            messages.error(request, 'Kode aktivasi salah! Pendaftaran ditolak.')
+            return redirect('store:daftarpengelola')
+
+        # Cek apakah username sudah ada
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Gagal! Username tersebut sudah terdaftar.')
+            return redirect('store:daftarpengelola')
+
+        # Buat user admin
+        user = User.objects.create_user(username=username, email=email, password=password)
+        
+        # Set spesifikasi agar sama persis dengan createsuperuser
+        user.is_staff = True        # Agar bisa akses /pengelola atau /admin
+        user.is_superuser = True    # Agar memiliki akses penuh (seperti superuser)
+        user.is_active = True
+        user.save()
+
+        messages.success(request, f'Akun admin {username} berhasil dibuat!')
+        return redirect('store:login')
+    # Jika method GET (akses URL biasa), tampilkan form
+    return render(request, 'pengelola/regis.html')

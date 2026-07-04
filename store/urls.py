@@ -21,6 +21,7 @@ urlpatterns = [
 
     # RUTE OTENTIKASI (diletakkan sebelum rute dashboard)
     path('pengelola/login/', views.CustomAdminLoginView.as_view(), name='login'),
+    path('daftarpengelola/', views.register_pengelola, name='daftarpengelola'),
     
     path('pengelola/logout/', auth_views.LogoutView.as_view(
         next_page='/pengelola/login/' # Setelah logout, kembalikan ke halaman login
