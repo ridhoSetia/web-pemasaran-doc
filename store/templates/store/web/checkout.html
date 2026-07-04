@@ -88,7 +88,7 @@
               >
                 <span class="material-symbols-outlined">route</span>
               </div>
-              <input type="hidden" id="biaya_per_km_setting" value="{{ toko.biaya_per_km }}">
+              <input type="hidden" id="biaya_per_km_setting" value="{{ toko.biaya_per_km|floatformat:0|cut:'.'|cut:',' }}">
               <input type="hidden" id="store_lat_setting" value="{{ toko.latitude }}">
               <input type="hidden" id="store_lng_setting" value="{{ toko.longitude }}">
               <div>

@@ -151,6 +151,7 @@ class StoreSetting(models.Model):
     latitude = models.CharField(max_length=50, default="-0.5020", help_text="Latitude lokasi toko")
     longitude = models.CharField(max_length=50, default="117.1530", help_text="Longitude lokasi toko")
     hero_image = models.ImageField(upload_to='settings/', null=True, blank=True, help_text="Gambar latar belakang halaman utama")
+    jam_operasional = models.TextField(blank=True, default="Senin - Sabtu: 08.00 - 17.00 WITA\nMinggu: Tutup (Kecuali Janji Temu)")
 
     def save(self, *args, **kwargs):
         if self.hero_image:

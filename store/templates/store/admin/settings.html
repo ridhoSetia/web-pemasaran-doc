@@ -29,6 +29,10 @@
                 <h4 class="text-[13px] font-bold text-on-surface-variant uppercase tracking-widest mb-5 pb-2 border-b border-outline-variant/50">Halaman Utama (Beranda)</h4>
                 <div class="grid grid-cols-1 gap-6">
                     <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Nama Toko / Peternakan</label>
+                        <input type="text" name="nama_toko" value="{{ setting.nama_toko }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Judul Utama (Hero Title)</label>
                         <input type="text" name="hero_title" value="{{ setting.hero_title }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
                     </div>
@@ -87,7 +91,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tarif Ongkir per KM (Rp)</label>
-                        <input type="number" name="biaya_per_km" value="{{ setting.biaya_per_km }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                        <input type="number" name="biaya_per_km" value="{{ setting.biaya_per_km|floatformat:0|cut:'.'|cut:',' }}" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Latitude Toko</label>
@@ -102,6 +106,18 @@
                         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Alamat Lengkap Toko</label>
                         <textarea name="alamat_toko" rows="2" placeholder="Contoh: Bukit Pinang, Kota Samarinda, Kalimantan Timur" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.alamat_toko }}</textarea>
                         <p class="text-[11px] text-on-surface-variant mt-1.5">*Alamat ini akan ditampilkan di halaman utama (Beranda) untuk pelanggan yang ingin berkunjung.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Alamat Lengkap Toko</label>
+                        <textarea name="alamat_toko" rows="3" placeholder="Contoh: Bukit Pinang, Kota Samarinda, Kalimantan Timur" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.alamat_toko }}</textarea>
+                        <p class="text-[11px] text-on-surface-variant mt-1.5">*Alamat akan tampil di halaman utama.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Jam Operasional</label>
+                        <textarea name="jam_operasional" rows="3" placeholder="Contoh: Senin - Sabtu: 08.00 - 17.00 WITA" class="w-full bg-surface-container rounded-xl border border-outline-variant/50 px-4 py-3 text-sm font-medium text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">{{ setting.jam_operasional }}</textarea>
+                        <p class="text-[11px] text-on-surface-variant mt-1.5">*Gunakan tombol 'Enter' untuk membuat baris baru.</p>
                     </div>
                 </div>
             </div>

@@ -810,13 +810,14 @@ def admin_settings(request):
             setting.hero_description = request.POST.get('hero_description')
             setting.rekening_bank = request.POST.get('rekening_bank')
             setting.rekening_nama = request.POST.get('rekening_nama')
-            setting.biaya_per_km = request.POST.get('biaya_per_km', 5000)
+            setting.biaya_per_km = int(float(request.POST.get('biaya_per_km')))
             setting.latitude = request.POST.get('latitude')
             setting.longitude = request.POST.get('longitude')
             setting.alamat_toko = request.POST.get('alamat_toko')
+            setting.jam_operasional = request.POST.get('jam_operasional')
             if 'hero_image' in request.FILES:
                 setting.hero_image = request.FILES['hero_image']
-                
+
             setting.save()
             messages.success(request, "Pengaturan toko berhasil diperbarui!")
             return redirect('store:admin_settings')
