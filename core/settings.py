@@ -262,3 +262,6 @@ CSP_REPORT_ONLY = DEBUG
 # ============================================================================
 CLOUDFLARE_TURNSTILE_SITE_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SITE_KEY')
 CLOUDFLARE_TURNSTILE_SECRET_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SECRET_KEY')
+
+# AUTHENTICATION (MENGGUNAKAN CUSTOM USER WA)
+AUTH_USER_MODEL = 'store.CustomUser'

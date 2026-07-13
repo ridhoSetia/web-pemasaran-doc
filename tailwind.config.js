@@ -12,43 +12,17 @@ module.exports = {
         "on-primary":                "#FFFFFF",
         "primary-container":         "#2D5A27",
         "on-primary-container":      "#9DD090",
-        "primary-fixed":             "#BCF0AE",
-        "primary-fixed-dim":         "#A1D494",
-        "on-primary-fixed":          "#002201",
-        "on-primary-fixed-variant":  "#23501E",
-        "inverse-primary":           "#A1D494",
         "secondary":                 "#D4A017",
         "on-secondary":              "#3B2900",
         "secondary-container":       "#FEF3C7",
         "on-secondary-container":    "#7C5A00",
-        "secondary-fixed":           "#FEF3C7",
-        "secondary-fixed-dim":       "#F5DD8A",
-        "on-secondary-fixed":        "#3B2900",
-        "on-secondary-fixed-variant":"#7C5A00",
-        "tertiary":                  "#2E3E20",
-        "on-tertiary":               "#FFFFFF",
-        "tertiary-container":        "#455535",
-        "on-tertiary-container":     "#B6C9A0",
-        "tertiary-fixed":            "#C6DDB8",
-        "tertiary-fixed-dim":        "#AAC89D",
-        "on-tertiary-fixed":         "#0F2A0A",
-        "on-tertiary-fixed-variant": "#30502A",
         "background":                "#FAF7F0",
         "on-background":             "#161A14",
         "surface":                   "#F5F1E8",
         "on-surface":                "#161A14",
         "surface-variant":           "#EDE8DD",
         "on-surface-variant":        "#3D4B3A",
-        "surface-dim":               "#D8D2C5",
-        "surface-bright":            "#FAF7F0",
-        "surface-tint":              "#3B6934",
         "surface-container-lowest":  "#FFFFFF",
-        "surface-container-low":     "#F5F1E8",
-        "surface-container":         "#EDE8DD",
-        "surface-container-high":    "#E8E2D6",
-        "surface-container-highest": "#DDD7CA",
-        "inverse-surface":           "#2A2820",
-        "inverse-on-surface":        "#F5F1E8",
         "outline":                   "#6B7A68",
         "outline-variant":           "#C8BFB0",
         "error":                     "#BA1A1A",
@@ -57,7 +31,7 @@ module.exports = {
         "on-error-container":        "#93000A",
       },
       borderRadius: { 
-        DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' 
+        DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', '2xl': '1rem', full: '9999px' 
       },
       spacing: { 
         xl: '40px', gutter: '20px', unit: '4px', md: '16px', sm: '8px', 
@@ -73,13 +47,20 @@ module.exports = {
         'body-md': ['Open Sans', 'sans-serif']
       },
       fontSize: {
-        h1: ['36px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
-        h2: ['28px', { lineHeight: '1.3', fontWeight: '600' }],
-        h3: ['20px', { lineHeight: '1.4', fontWeight: '600' }],
-        'body-lg': ['15px', { lineHeight: '1.6', fontWeight: '400' }],
+        // H1 lebih proporsional untuk dashboard, tidak terlalu agresif
+        h1: ['32px', { lineHeight: '1.25', letterSpacing: '-0.01em', fontWeight: '700' }],
+        // H2 terasa lebih elegan dan tidak "tabrakan" dengan H1
+        h2: ['24px', { lineHeight: '1.3', fontWeight: '600' }],
+        // H3 lebih pas untuk sub-heading menu atau section
+        h3: ['18px', { lineHeight: '1.4', fontWeight: '600' }],
+        // 16px adalah standar industri untuk body text yang nyaman dibaca
+        'body-lg': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+        // 14px untuk metadata atau info pendukung agar tidak terlalu mencolok
         'body-md': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
-        'label-sm': ['12px', { lineHeight: '1.2', letterSpacing: '0.05em', fontWeight: '600' }],
-        caption: ['11px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '300' }]
+        // Label dengan letter-spacing sedikit lebih rapat
+        'label-sm': ['12px', { lineHeight: '1.2', letterSpacing: '0.02em', fontWeight: '600' }],
+        // Caption yang tetap terbaca (12px)
+        caption: ['12px', { lineHeight: '1.4', fontWeight: '400' }]
       }
     },
   },

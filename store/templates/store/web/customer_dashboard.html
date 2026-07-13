@@ -1,0 +1,75 @@
+{% extends 'store/web/base_web.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-background py-10 font-sans antialiased">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        
+        <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div class="flex items-start gap-4">
+                <div class="hidden sm:flex items-center justify-center shrink-0 w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+                    <span class="material-symbols-outlined text-[24px]">waving_hand</span>
+                </div>
+                <div>
+                    <h1 class="text-h2 text-on-surface mb-4">{{ toko.dashboard_welcome_title }}</h1>
+                    
+                    <p class="text-body-md text-on-surface-variant leading-relaxed mb-5">
+                        {{ toko.dashboard_intro_text|linebreaksbr }}
+                    </p>
+
+                    <div class="text-body-md text-on-surface-variant leading-relaxed mb-5">
+                        <p class="font-semibold mb-2 text-on-surface">Melalui aplikasi ini, Anda dapat melakukan pemesanan:</p>
+                        <ul class="space-y-1.5 ml-1">
+                            {% for produk in produk_list %}
+                            <li class="flex items-center gap-2.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-primary/70"></span>
+                                {{ produk.nama }}
+                            </li>
+                            {% empty %}
+                            <li class="italic text-on-surface-variant/70">- Belum ada produk yang didaftarkan.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <p class="text-body-md text-on-surface-variant leading-relaxed">
+                        {{ toko.dashboard_outro_text|linebreaksbr }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-primary/5 border border-primary/20 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[28px]">pending_actions</span>
+                <div>
+                    <h3 class="text-body-lg font-semibold text-on-surface">Transparansi Antrean</h3>
+                    <p class="text-body-md text-on-surface-variant">Cek posisi dan estimasi antrean yang sedang berjalan saat ini.</p>
+                </div>
+            </div>
+            <a href="{% url 'store:info_antrian' %}" class="w-full sm:w-auto px-5 py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm text-center whitespace-nowrap">
+                Lihat Daftar Antrean
+            </a>
+        </div>
+
+        <div class="pt-2">
+            <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 sm:p-8 flex flex-col hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center gap-3 mb-5 border-b border-outline-variant/30 pb-4">
+                    <div class="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">cruelty_free</span>
+                    </div>
+                    <h2 class="text-xl font-semibold text-on-surface">Pemesanan DoC Ayam KUB</h2>
+                </div>
+                
+                <div class="text-body-md text-on-surface-variant leading-[2] mb-8 flex-grow">
+                    {{ toko.syarat_doc|linebreaksbr }}
+                </div>
+                
+                <a href="{% url 'store:order_doc' %}" class="w-full text-center px-4 py-3.5 bg-primary text-on-primary font-bold text-sm rounded-xl hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all shadow-md">
+                    + Buat Pesanan DoC KUB
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

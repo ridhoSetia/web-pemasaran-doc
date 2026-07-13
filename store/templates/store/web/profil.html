@@ -1,0 +1,327 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-background py-10 font-sans antialiased">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-10 border-b border-outline-variant/30 pb-6">
+            <a href="{% url 'store:customer_dashboard' %}" class="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 mb-4 transition-colors">
+                <span class="material-symbols-outlined text-[18px] mr-1">arrow_back</span> Kembali ke Dasbor
+            </a>
+            <h1 class="text-h2 font-bold text-on-surface">Pengaturan Akun</h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-8 p-4 rounded-xl text-sm font-bold flex items-start gap-2 {% if message.tags == 'error' %}bg-error-container text-on-error-container border border-error/20{% else %}bg-primary/10 text-primary border border-primary/20{% endif %} shadow-sm">
+                    <span class="material-symbols-outlined text-[20px] mt-0.5">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="mb-10">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_profile">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-10">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-on-surface">Informasi Utama Akun</h3>
+                    <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
+                        Silahkan kontak admin untuk mengubah data utama akun.
+                    </p>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-on-surface mb-2">Nama</label>
+                            <input type="text" value="{{ request.user.nama_lengkap }}" readonly
+                                   class="w-full px-4 py-3 bg-surface-variant/30 border border-outline-variant/50 rounded-xl text-on-surface-variant cursor-not-allowed outline-none font-medium focus:ring-0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-on-surface mb-2">Whatsapp</label>
+                            <input type="text" value="{{ request.user.nomor_wa }}" readonly
+                                   class="w-full px-4 py-3 bg-surface-variant/30 border border-outline-variant/50 rounded-xl text-on-surface-variant cursor-not-allowed outline-none font-medium focus:ring-0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-outline-variant/30 mb-10">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-on-surface">Informasi Alamat</h3>
+                    <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
+                        Anda dapat menyesuaikan alamat pengiriman pesanan Anda di sini.
+                    </p>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                        <div class="p-6 sm:p-8 space-y-5">
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Provinsi <span class="text-error">*</span></label>
+                                <div class="relative">
+                                    <select name="provinsi" id="provinsi" required class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer font-medium text-sm transition-colors">
+                                        <option value="{{ request.user.provinsi|default:'' }}" selected>{{ request.user.provinsi|default:"-- Pilih Provinsi --" }}</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Kabupaten <span class="text-error">*</span></label>
+                                <div class="relative">
+                                    <select name="kabupaten" id="kabupaten" required {% if not request.user.kabupaten %}disabled{% endif %} class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer font-medium text-sm transition-colors disabled:opacity-50 disabled:bg-surface-variant/30">
+                                        <option value="{{ request.user.kabupaten|default:'' }}" selected>{{ request.user.kabupaten|default:"-- Pilih Kabupaten --" }}</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Kecamatan <span class="text-error">*</span></label>
+                                <div class="relative">
+                                    <select name="kecamatan" id="kecamatan" required {% if not request.user.kecamatan %}disabled{% endif %} class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer font-medium text-sm transition-colors disabled:opacity-50 disabled:bg-surface-variant/30">
+                                        <option value="{{ request.user.kecamatan|default:'' }}" selected>{{ request.user.kecamatan|default:"-- Pilih Kecamatan --" }}</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Kelurahan / Desa <span class="text-error">*</span></label>
+                                <div class="relative">
+                                    <select name="kelurahan" id="kelurahan" required {% if not request.user.kelurahan %}disabled{% endif %} class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer font-medium text-sm transition-colors disabled:opacity-50 disabled:bg-surface-variant/30">
+                                        <option value="{{ request.user.kelurahan|default:'' }}" selected>{{ request.user.kelurahan|default:"-- Pilih Kelurahan/Desa --" }}</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Alamat Detail <span class="text-error">*</span></label>
+                                <textarea name="alamat" rows="3" required placeholder="Nama jalan, nomor rumah, RT/RW..."
+                                          class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors">{{ request.user.alamat }}</textarea>
+                            </div>
+
+                            <label class="flex items-center gap-3 cursor-pointer group mt-2 w-fit">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="update_all_orders" class="peer sr-only">
+                                    <div class="w-5 h-5 border-2 border-outline-variant rounded bg-surface peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
+                                    <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
+                                </div>
+                                <span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">Ubah semua pesanan yang belum dikirim</span>
+                            </label>
+
+                        </div>
+                        
+                        <div class="bg-surface-container-highest/40 px-6 py-5 border-t border-outline-variant/30 flex justify-end">
+                            <button type="submit" class="px-10 py-3 bg-primary hover:bg-black text-white font-bold text-sm rounded-lg transition-colors shadow-md tracking-wider">
+                                SIMPAN PERUBAHAN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <hr class="border-outline-variant/30 mb-10">
+
+        <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 pb-10">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_password">
+            
+            <div class="md:col-span-1">
+                <h3 class="text-lg font-bold text-on-surface">Keamanan Akun</h3>
+                <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
+                    Perbarui kata sandi Anda secara berkala untuk menjaga keamanan akun.
+                </p>
+            </div>
+            
+            <div class="md:col-span-2">
+                <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 sm:p-8 space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-on-surface mb-2">Password Saat Ini</label>
+                            <input type="password" name="old_password" required
+                                   class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors">
+                        </div>
+
+                        <div class="border-t border-outline-variant/30 my-4"></div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Password Baru</label>
+                                <input type="password" name="new_password" required minlength="8"
+                                       class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-on-surface mb-2">Konfirmasi Password</label>
+                                <input type="password" name="confirm_password" required minlength="8"
+                                       class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-surface-container-highest/40 px-6 py-5 border-t border-outline-variant/30 flex justify-end">
+                        <button type="submit" class="px-10 py-3 bg-error hover:bg-error/90 text-white font-bold text-sm rounded-lg transition-colors shadow-md tracking-wider">
+                            SIMPAN PASSWORD
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const provSelect = document.getElementById('provinsi');
+    const kabSelect = document.getElementById('kabupaten');
+    const kecSelect = document.getElementById('kecamatan');
+    const kelSelect = document.getElementById('kelurahan');
+
+    const currentProv = "{{ request.user.provinsi|default:'' }}".toUpperCase();
+    const currentKab = "{{ request.user.kabupaten|default:'' }}".toUpperCase();
+    const currentKec = "{{ request.user.kecamatan|default:'' }}".toUpperCase();
+    const currentKel = "{{ request.user.kelurahan|default:'' }}".toUpperCase();
+
+    const fetchData = async (url) => {
+        const res = await fetch(url);
+        return res.json();
+    };
+
+    const loadBackgroundAPI = async () => {
+        try {
+            const provinces = await fetchData('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            let matchedProvId = null;
+            
+            provSelect.innerHTML = '<option value="">-- Pilih Provinsi --</option>';
+            provinces.forEach(prov => {
+                const option = document.createElement('option');
+                option.value = prov.name; 
+                option.dataset.id = prov.id; 
+                option.textContent = prov.name;
+                if (currentProv && prov.name.toUpperCase() === currentProv) {
+                    option.selected = true;
+                    matchedProvId = prov.id;
+                }
+                provSelect.appendChild(option);
+            });
+
+            if (matchedProvId) {
+                const regencies = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${matchedProvId}.json`);
+                let matchedKabId = null;
+                
+                kabSelect.innerHTML = '<option value="">-- Pilih Kabupaten --</option>';
+                regencies.forEach(kab => {
+                    const option = document.createElement('option');
+                    option.value = kab.name; option.dataset.id = kab.id; option.textContent = kab.name;
+                    if (currentKab && kab.name.toUpperCase() === currentKab) {
+                        option.selected = true;
+                        matchedKabId = kab.id;
+                    }
+                    kabSelect.appendChild(option);
+                });
+
+                if (matchedKabId) {
+                    const districts = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${matchedKabId}.json`);
+                    let matchedKecId = null;
+                    
+                    kecSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+                    districts.forEach(kec => {
+                        const option = document.createElement('option');
+                        option.value = kec.name; option.dataset.id = kec.id; option.textContent = kec.name;
+                        if (currentKec && kec.name.toUpperCase() === currentKec) {
+                            option.selected = true;
+                            matchedKecId = kec.id;
+                        }
+                        kecSelect.appendChild(option);
+                    });
+
+                    if (matchedKecId) {
+                        const villages = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${matchedKecId}.json`);
+                        
+                        kelSelect.innerHTML = '<option value="">-- Pilih Kelurahan/Desa --</option>';
+                        villages.forEach(kel => {
+                            const option = document.createElement('option');
+                            option.value = kel.name; option.textContent = kel.name;
+                            if (currentKel && kel.name.toUpperCase() === currentKel) {
+                                option.selected = true;
+                            }
+                            kelSelect.appendChild(option);
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Gagal memuat API Wilayah", error);
+        }
+    };
+
+    loadBackgroundAPI();
+
+    provSelect.addEventListener('change', async function() {
+        const opt = this.options[this.selectedIndex];
+        if(opt.value) {
+            kabSelect.innerHTML = '<option value="">Memuat...</option>';
+            kecSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+            kelSelect.innerHTML = '<option value="">-- Pilih Kelurahan/Desa --</option>';
+            kabSelect.disabled = false; kecSelect.disabled = true; kelSelect.disabled = true;
+
+            const regencies = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${opt.dataset.id}.json`);
+            kabSelect.innerHTML = '<option value="">-- Pilih Kabupaten --</option>';
+            regencies.forEach(kab => {
+                const o = document.createElement('option'); o.value = kab.name; o.dataset.id = kab.id; o.textContent = kab.name;
+                kabSelect.appendChild(o);
+            });
+        }
+    });
+
+    kabSelect.addEventListener('change', async function() {
+        const opt = this.options[this.selectedIndex];
+        if(opt.value) {
+            kecSelect.innerHTML = '<option value="">Memuat...</option>';
+            kelSelect.innerHTML = '<option value="">-- Pilih Kelurahan/Desa --</option>';
+            kecSelect.disabled = false; kelSelect.disabled = true;
+
+            const districts = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${opt.dataset.id}.json`);
+            kecSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+            districts.forEach(kec => {
+                const o = document.createElement('option'); o.value = kec.name; o.dataset.id = kec.id; o.textContent = kec.name;
+                kecSelect.appendChild(o);
+            });
+        }
+    });
+
+    kecSelect.addEventListener('change', async function() {
+        const opt = this.options[this.selectedIndex];
+        if(opt.value) {
+            kelSelect.innerHTML = '<option value="">Memuat...</option>';
+            kelSelect.disabled = false;
+
+            const villages = await fetchData(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${opt.dataset.id}.json`);
+            kelSelect.innerHTML = '<option value="">-- Pilih Kelurahan/Desa --</option>';
+            villages.forEach(kel => {
+                const o = document.createElement('option'); o.value = kel.name; o.textContent = kel.name;
+                kelSelect.appendChild(o);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

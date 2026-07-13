@@ -1,0 +1,141 @@
+{% extends 'store/web/base_web.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-background py-10 font-sans antialiased">
+    <!-- LEBAR DIPERSEMPIT MENGGUNAKAN max-w-5xl -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- HEADER PENGANTAR -->
+        <div class="mb-8 border-b border-outline-variant/30 pb-4">
+            <h1 class="text-h2 font-bold text-on-surface">Daftar Antrian Pesanan</h1>
+        </div>
+
+        <!-- 1. KOTAK RINGKASAN TOTAL ANTREAN -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {% for ringkasan in ringkasan_kuantitas %}
+            <div class="rounded-xl overflow-hidden shadow-md flex flex-col border border-outline-variant/20">
+                <!-- Bagian Label (Atas) -->
+                <div class="bg-surface-container-highest py-3 px-4 text-center">
+                    <div class="text-xs font-semibold text-on-surface/80">antrian {{ ringkasan.product__kategori }}</div>
+                    <div class="text-[11px] text-on-surface-variant mt-0.5">
+                        [ {% if ringkasan.product__kategori == 'Telur' %}butir{% else %}ekor{% endif %} ]
+                    </div>
+                </div>
+                <!-- Bagian Angka (Bawah) -->
+                <div class="bg-surface-container-lowest py-6 text-center flex-grow flex items-center justify-center">
+                    <h3 class="text-4xl font-bold text-on-surface animate-pulse">{{ ringkasan.total_qty }}</h3>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full bg-surface-variant/50 rounded-xl p-5 text-center border border-outline-variant/30">
+                <p class="text-on-surface-variant font-medium">Belum ada antrean yang berjalan saat ini.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 2. INDIKATOR ESTIMASI (Merah Berkedip) -->
+        <div class="flex justify-end items-center gap-2 mb-8">
+            <span class="text-sm text-error font-medium">Estimasi hanya bersifat perkiraan</span>
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-error"></span>
+            </span>
+        </div>
+
+        <!-- 3. FILTER FULL-WIDTH -->
+        <div class="mb-4">
+            <label class="block text-[13px] font-semibold text-on-surface-variant mb-1.5 ml-1">Filter jenis antrian</label>
+            <form method="GET">
+                <select name="kategori" onchange="this.form.submit()" class="w-full px-4 py-3.5 text-sm bg-surface-container-highest border border-outline-variant/30 rounded-xl text-on-surface focus:ring-2 focus:ring-primary/50 outline-none appearance-none cursor-pointer font-medium">
+                    <option value="ALL" {% if filter_kategori == 'ALL' %}selected{% endif %}>Semua jenis antrian</option>
+                    {% for kat in kategori_choices %}
+                        <option value="{{ kat }}" {% if filter_kategori == kat %}selected{% endif %}>Antrian {{ kat }} Only</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <!-- 4. TABEL ANTREAN -->
+        <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <!-- Head Tabel -->
+                    <thead class="bg-surface-container-highest text-on-surface-variant uppercase text-[11px] font-bold tracking-wider border-b border-outline-variant/30">
+                        <tr>
+                            <th class="px-6 py-4 w-1/4">KODE</th>
+                            <th class="px-6 py-4 w-2/4 hidden md:table-cell">JENIS PESANAN</th>
+                            <th class="px-6 py-4 text-center hidden md:table-cell">STATUS</th>
+                            <th class="px-6 py-4 text-center hidden md:table-cell">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20">
+                        
+                        <!-- Baris Peringatan Posisi -->
+                        {% if posisi_saya %}
+                        <tr class="bg-surface">
+                            <td colspan="4" class="px-6 py-5 text-center text-sm font-medium text-on-surface">
+                                {% with my_pos=posisi_saya.values|first %}
+                                    ada <span class="text-primary font-bold">{{ my_pos|add:"-1" }} baris antrian</span> di atas antrian anda.
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        <!-- Looping Data Antrean -->
+                        {% for antrean in antrean_list %}
+                            <tr class="hover:bg-surface-container-low transition-colors {% if antrean.order_id in posisi_saya %}bg-primary/5{% endif %}">
+                                
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-on-surface mb-1.5">{{ antrean.order_id }}</div>
+                                    <div class="text-on-surface-variant font-medium text-xs tracking-wide">
+                                        {% if antrean.order_id in posisi_saya %}
+                                            {{ antrean.user.nama_lengkap }}
+                                        {% else %}
+                                            {{ antrean.masked_name }}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="block md:hidden mt-4">
+                                        <div class="text-xs text-on-surface mb-3 whitespace-normal">{{ antrean.items_summary }}</div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center px-2 py-1 rounded bg-secondary/10 text-secondary text-[10px] font-bold border border-secondary/20">
+                                                {{ antrean.get_status_display|default:"Persiapan Pengiriman"|lower }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 hidden md:table-cell text-on-surface-variant whitespace-normal min-w-[200px]">
+                                    {{ antrean.items_summary }}
+                                </td>
+
+                                <td class="px-6 py-4 text-center hidden md:table-cell">
+                                    <span class="inline-flex items-center px-2.5 py-1.5 rounded-md bg-secondary/10 text-secondary text-[11px] font-bold border border-secondary/20 tracking-wide">
+                                        {{ antrean.get_status_display|default:"persiapan pengiriman"|lower }}
+                                    </span>
+                                </td>
+
+                                <td class="px-6 py-4 text-center hidden md:table-cell">
+                                    {% if antrean.order_id in posisi_saya %}
+                                    <a href="#" class="inline-flex items-center justify-center px-3 py-1.5 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-semibold text-[11px] rounded transition-colors border border-outline-variant/30 uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-[14px] mr-1">visibility</span> detail
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-12 text-center text-on-surface-variant font-medium">
+                                    Tidak ada antrean berjalan untuk kategori ini.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

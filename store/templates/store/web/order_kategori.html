@@ -1,0 +1,303 @@
+{% extends 'store/web/base_web.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-background py-10 font-sans antialiased">
+    <!-- Menggunakan lebar max-w-5xl agar pas untuk 2 kolom -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- HEADER FORM -->
+        <div class="mb-8">
+            <a href="{% url 'store:customer_dashboard' %}" class="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 mb-4 transition-colors">
+                <span class="material-symbols-outlined text-[18px] mr-1">arrow_back</span> Kembali ke Dasbor
+            </a>
+            <h1 class="text-h2 font-bold text-on-surface">Pemesanan DoC KUB</h1>
+            <p class="text-body-md text-on-surface-variant mt-1.5">
+                Lengkapi rincian pesanan Anda. Form ini terintegrasi langsung dengan profil Anda.
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 rounded-xl text-sm font-bold flex items-start gap-2 {% if message.tags == 'error' %}bg-error-container text-on-error-container border border-error/20{% else %}bg-primary/10 text-primary border border-primary/20{% endif %}">
+                    <span class="material-symbols-outlined text-[20px] mt-0.5">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form id="orderForm" method="POST" action="{% url 'store:proses_po' %}" class="space-y-6">
+            {% csrf_token %}
+            <!-- Input tersembunyi untuk dikirim ke backend -->
+            <input type="hidden" name="cart_data" id="cart_data_input">
+
+            <!-- 1. DROPDOWN PILIH VARIAN (Full Width Atas) -->
+            <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 shadow-sm">
+                <label for="product_select" class="block text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+                    Pilih Jenis Pesanan <span class="text-error">*</span>
+                </label>
+                <div class="relative">
+                    <select name="product_id" id="product_select" required class="w-full px-5 py-4 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer text-lg font-medium transition-colors">
+                        <option value="" disabled selected>-- Silakan memilih jenis pesanan DoC --</option>
+                        {% for item in produk %}
+                            <option value="{{ item.id }}" data-harga="{{ item.harga|floatformat:0|cut:'.'|cut:',' }}">{{ item.nama }}</option>                        
+                        {% endfor %}
+                    </select>
+                    <!-- Ikon panah kustom -->
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- 2. KOLOM KIRI: RINCIAN JUMLAH & HARGA -->
+                <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 shadow-sm flex flex-col">
+                    <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/30 pb-3 mb-5">
+                        Rincian Pesanan
+                    </h3>
+                    
+                    <div id="detail_pesanan_wrapper" class="flex-grow flex flex-col justify-between opacity-50 pointer-events-none transition-opacity duration-300">
+                        <!-- Input Jumlah -->
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">Jumlah (Ekor)</label>
+                            <input type="number" name="kuantitas" id="kuantitas" value="10" min="10" required
+                                   class="w-full px-4 py-3 text-2xl font-black text-center bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors">
+                            <p class="text-xs text-error font-medium mt-2 text-center">* Minimal pendaftaran antrean 10 ekor</p>
+                        </div>
+
+                        <!-- Kalkulasi -->
+                        <div class="mt-8 space-y-4 bg-surface-variant/30 p-4 rounded-xl border border-outline-variant/20">
+                            <div class="flex justify-between items-center text-on-surface-variant">
+                                <span class="text-sm font-medium">Harga Satuan</span>
+                                <span class="text-base font-semibold" id="harga_tampil">Rp 0</span>
+                            </div>
+                            <div class="border-t border-outline-variant/30 pt-3 flex justify-between items-center">
+                                <span class="text-sm font-bold text-on-surface">Sub Total</span>
+                                <span class="text-2xl font-black text-primary" id="sub_total_tampil">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. KOLOM KANAN: ALAMAT & EKSPEDISI -->
+                <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 shadow-sm flex flex-col">
+                    <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/30 pb-3 mb-5">
+                        Alamat Pengiriman
+                    </h3>
+                    
+                    <div class="space-y-4 flex-grow">
+                        <!-- Info Alamat Langsung dari Database -->
+                        <div class="bg-primary/5 border border-primary/10 rounded-xl p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-primary mt-0.5">location_on</span>
+                                <div>
+                                    <p class="text-body-lg font-semibold text-on-surface">{{ request.user.nama_lengkap }}</p>
+                                    <p class="text-sm text-on-surface-variant mb-2">{{ request.user.nomor_wa }}</p>
+                                    <p class="text-sm text-on-surface font-medium leading-relaxed">
+                                        {{ request.user.alamat_lengkap|default:"Belum ada alamat tersimpan." }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Ekspedisi -->
+                        <div class="pt-2">
+                            <label for="pengiriman" class="block text-sm font-semibold text-on-surface mb-2">Metode Ekspedisi <span class="text-error">*</span></label>
+                            <div class="relative">
+                                <select name="pengiriman" id="pengiriman" required class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none cursor-pointer transition-colors font-medium text-sm">
+                                    <option value="" disabled selected>-- Pilih Ekspedisi --</option>
+                                    {% for eks in ekspedisi %}
+                                        <option value="{{ eks.id }}" data-biaya="{{ eks.biaya }}">
+                                            {{ eks.nama }} {% if eks.biaya > 0 %}(+ Rp {{ eks.biaya|floatformat:0 }}){% else %}(Gratis){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-on-surface-variant">
+                                    <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-error font-medium mt-2 leading-tight">
+                                * Kami berhak mengubah ekspedisi jika ternyata layanan tidak dapat diproses dengan ekspedisi pilihan Anda di lapangan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 4. TOMBOL SUBMIT -->
+            <div class="mt-8 flex justify-end">
+                <button type="submit" id="btn_submit" class="w-full sm:w-auto px-10 py-4 bg-primary text-on-primary font-bold text-base rounded-xl hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                    <span class="material-symbols-outlined">save</span> Simpan Pesanan
+                </button>
+            </div>
+</form>
+    </div>
+</div>
+
+<div id="modal_konfirmasi" class="fixed inset-0 z-[999] hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 text-center transform scale-95 transition-transform duration-300" id="modal_content">
+        
+        <div class="w-16 h-16 mx-auto border-2 border-orange-400 rounded-full flex items-center justify-center mb-5">
+            <span class="material-symbols-outlined text-orange-400 text-4xl font-light">priority_high</span>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Konfirmasi persetujuan antrian</h2>
+        <p class="text-gray-600 mb-6 text-sm">Ketikkan SETUJU untuk melanjutkan pesanan.</p>
+        
+        <input type="text" id="input_setuju" placeholder="SETUJU" autocomplete="off"
+               class="w-full text-center px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-6 uppercase tracking-widest font-bold text-gray-700">
+        
+        <div class="flex justify-center gap-3">
+            <button type="button" id="btn_modal_simpan" class="px-6 py-2 bg-[#4ade80] hover:bg-green-500 text-white font-medium rounded transition-colors shadow-sm">
+                Simpan
+            </button>
+            <button type="button" id="btn_modal_batal" class="px-6 py-2 bg-[#ef4444] hover:bg-red-600 text-white font-medium rounded transition-colors shadow-sm">
+                Batalkan
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById('orderForm');
+        const selectProduct = document.getElementById('product_select');
+        const inputQty = document.getElementById('kuantitas');
+        const textHarga = document.getElementById('harga_tampil');
+        const textSubTotal = document.getElementById('sub_total_tampil');
+        const cartDataInput = document.getElementById('cart_data_input');
+        const detailWrapper = document.getElementById('detail_pesanan_wrapper');
+        
+        // Elemen Modal
+        const modal = document.getElementById('modal_konfirmasi');
+        const modalContent = document.getElementById('modal_content');
+        const inputSetuju = document.getElementById('input_setuju');
+        const btnModalSimpan = document.getElementById('btn_modal_simpan');
+        const btnModalBatal = document.getElementById('btn_modal_batal');
+        
+        let selectedPrice = 0;
+
+        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
+
+const selectPengiriman = document.getElementById('pengiriman');
+
+        const updatePerhitungan = () => {
+            const qty = parseInt(inputQty.value) || 0;
+            
+            // Ambil ongkir dari atribut data-biaya
+            let ongkir = 0;
+            if (selectPengiriman.selectedIndex > 0) {
+                const selectedEks = selectPengiriman.options[selectPengiriman.selectedIndex];
+                ongkir = parseInt(selectedEks.getAttribute('data-biaya')) || 0;
+            }
+            
+            const subtotalProduk = selectedPrice * qty;
+            const total = subtotalProduk + ongkir; // Jumlahkan dengan ongkir
+            
+            if(textHarga) textHarga.innerText = 'Rp ' + formatRupiah(selectedPrice);
+            if(textSubTotal) textSubTotal.innerText = 'Rp ' + formatRupiah(total);
+        };
+
+        // Panggil fungsi jika ekspedisi diganti
+        if(selectPengiriman) selectPengiriman.addEventListener('change', updatePerhitungan);
+
+        if(selectProduct) {
+            selectProduct.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                selectedPrice = parseInt(selectedOption.getAttribute('data-harga')) || 0;
+                if(detailWrapper) detailWrapper.classList.remove('opacity-50', 'pointer-events-none');
+                updatePerhitungan();
+            });
+        }
+
+        if(inputQty) inputQty.addEventListener('input', updatePerhitungan);
+
+        // 1. EVENT SUBMIT FORM (Cegah submit langsung, tampilkan Modal)
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Hentikan pengiriman form ke backend
+
+            const productId = selectProduct.value;
+            if (!productId) {
+                alert('Silakan memilih jenis pesanan DoC terlebih dahulu.');
+                return;
+            }
+
+            const qty = parseInt(inputQty.value);
+            const minQty = parseInt(inputQty.getAttribute('min') || 10);
+
+            if (qty < minQty) {
+                alert(`Mohon maaf, jumlah minimal pemesanan adalah ${minQty} ekor.`);
+                return;
+            }
+
+            // Bentuk data keranjang
+            const cartData = [{ id: productId, qty: qty }];
+            cartDataInput.value = JSON.stringify(cartData);
+
+            // TAMPILKAN MODAL
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+                inputSetuju.focus(); // Arahkan kursor langsung ke inputan
+            }, 10);
+        });
+
+        // 2. EVENT TOMBOL BATAL DI MODAL
+        btnModalBatal.addEventListener('click', function() {
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                inputSetuju.value = ''; // Bersihkan inputan
+            }, 200);
+        });
+
+        btnModalSimpan.addEventListener('click', async function() {
+            const konfirmasi = inputSetuju.value.trim().toUpperCase();
+            
+            if (konfirmasi === 'SETUJU') {
+                btnModalSimpan.innerHTML = 'Memproses...';
+                btnModalSimpan.disabled = true;
+                
+                const formData = new FormData(form);
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    // Cek jika status bukan 200 (OK)
+                    if (!response.ok) {
+                        // Jika ada error server, ambil teks errornya
+                        const errorText = await response.text();
+                        console.error("Server Error:", errorText);
+                        alert("Terjadi kesalahan di server. Cek terminal Django Anda.");
+                        return;
+                    }
+
+                    // Jika sukses
+                    window.location.href = response.url;
+                } catch (error) {
+                    console.error("Network Error:", error);
+                    alert("Gagal terhubung ke server.");
+                } finally {
+                    btnModalSimpan.innerHTML = 'Simpan';
+                    btnModalSimpan.disabled = false;
+                }
+            } else {
+                inputSetuju.classList.add('border-red-500', 'animate-bounce');
+            }
+        });
+
+        // Kembalikan warna border saat mulai mengetik ulang
+        inputSetuju.addEventListener('input', function() {
+            this.classList.remove('border-red-500', 'text-red-600');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-background py-10 font-sans antialiased">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-8 border-b border-outline-variant/30 pb-6">
+            <a href="{% url 'store:customer_dashboard' %}" class="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 mb-4 transition-colors">
+                <span class="material-symbols-outlined text-[18px] mr-1">arrow_back</span> Kembali ke Dasbor
+            </a>
+            <h1 class="text-h2 font-bold text-on-surface">Daftar Pesanan Saya</h1>
+            <p class="text-body-md text-on-surface-variant mt-1.5">Pantau status konfirmasi DP dan antrean pemesanan Anda.</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 rounded-xl text-sm font-bold flex items-start gap-2 {% if message.tags == 'error' %}bg-error-container text-on-error-container border border-error/20{% else %}bg-primary/10 text-primary border border-primary/20{% endif %} shadow-sm">
+                    <span class="material-symbols-outlined text-[20px] mt-0.5">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
+                    <thead class="bg-surface-container-highest text-on-surface-variant text-[11px] uppercase font-bold tracking-wider border-b border-outline-variant/30">
+                        <tr>
+                            <th class="px-6 py-4">Kode Pesanan</th>
+                            <th class="px-6 py-4">Informasi Produk</th>
+                            <th class="px-6 py-4 text-center">Status Pemesanan</th>
+                            <th class="px-6 py-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20 text-on-surface">
+                        {% for order in orders %}
+                        <tr class="hover:bg-surface-container-high/30 transition-colors">
+                            <td class="px-6 py-5 font-bold text-primary">{{ order.order_id }}</td>
+                            <td class="px-6 py-5 font-medium">{{ order.items_summary }}</td>
+                            <td class="px-6 py-5 text-center">
+                                {% if order.status == 'MENUNGGU_DP' %}
+                                    <span class="px-3 py-1 rounded-lg bg-orange-50 text-orange-700 text-[11px] font-bold border border-orange-200/60">Menunggu DP</span>
+                                {% elif order.status == 'KONFIRMASI_DP' %}
+                                    <span class="px-3 py-1 rounded-lg bg-yellow-50 text-yellow-700 text-[11px] font-bold border border-yellow-200/60">Verifikasi Admin</span>
+                                {% else %}
+                                    <span class="px-3 py-1 rounded-lg bg-green-50 text-green-700 text-[11px] font-bold border border-green-200/60">{{ order.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <a href="{% url 'store:public_invoice' order.order_id %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl text-xs font-bold transition-all shadow-md">
+                                    <span class="material-symbols-outlined text-[16px]">visibility</span> Detail
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-12 text-center text-on-surface-variant font-medium">Belum ada data transaksi atau pendaftaran antrean.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

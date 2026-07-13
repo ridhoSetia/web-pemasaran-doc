@@ -16,46 +16,6 @@
             </span>
             <span class="material-symbols-outlined" aria-hidden="true">tune</span>
         </button>
-
-        <form id="filter-menu" method="GET" action="{% url 'store:market' %}" 
-              class="hidden fixed inset-0 z-50 bg-surface w-full h-full p-6 flex flex-col overflow-y-auto 
-                     md:block md:static md:w-full md:h-auto md:bg-surface-container-lowest md:p-lg md:rounded-xl md:border md:border-outline-variant md:sticky md:top-24 md:shadow-sm md:z-auto">
-          
-          <div class="flex items-center justify-between mb-lg border-b border-outline-variant/30 pb-4 md:pb-2">
-            <h2 class="font-h3 text-h2 md:text-h3 text-on-surface">Filter</h2>
-            
-            <button type="button" onclick="closeFilter()" aria-label="Tutup Filter" class="md:hidden p-2 bg-surface-container rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-center">
-              <span class="material-symbols-outlined" aria-hidden="true">close</span>
-            </button>
-
-            <a href="{% url 'store:market' %}" class="hidden md:block text-primary text-label-sm font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded px-1">Reset</a>
-          </div>
-
-          <fieldset class="mb-lg flex-1 md:flex-none">
-            <legend class="font-bold text-body-md mb-md text-on-surface">Kategori Hasil Ternak</legend>
-            <div class="flex flex-col gap-sm md:gap-2">
-              
-              {% for kategori in categories %}
-                <label for="cat-{{ forloop.counter }}" class="flex items-center gap-sm cursor-pointer group w-fit py-1 md:py-0">
-                  <input id="cat-{{ forloop.counter }}" 
-                         class="rounded text-primary focus:ring-primary-container border-outline-variant bg-surface w-5 h-5 cursor-pointer md:w-4 md:h-4" 
-                         type="checkbox" 
-                         name="cat" 
-                         value="{{ kategori }}"
-                         {% if kategori in selected_cats %}checked{% endif %} />
-                         <span class="text-body-md group-hover:text-primary transition-colors">{{ kategori }}</span>
-                </label>
-              {% endfor %}
-              
-            </div>
-          </fieldset>
-          
-          <div class="mt-auto md:mt-0 pt-6 md:pt-0 pb-4 md:pb-0">
-            <button type="submit" class="w-full bg-primary text-white text-label-sm font-bold hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-primary rounded-lg py-3.5 md:py-2.5 mb-3 md:mb-0 transition-colors shadow-sm">Terapkan Filter</button>
-            
-            <a href="{% url 'store:market' %}" class="md:hidden flex items-center justify-center w-full bg-surface text-primary border border-primary text-label-sm font-bold hover:bg-primary-container/10 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg py-3 transition-colors">Reset Semua</a>
-          </div>
-        </form>
       </aside>
 
       <section class="flex-1 min-w-0" aria-label="Daftar Produk">

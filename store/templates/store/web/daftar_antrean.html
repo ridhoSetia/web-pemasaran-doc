@@ -1,0 +1,36 @@
+{% extends 'store/web/base_web.html' %}
+
+{% block content %}
+<div class="bg-background min-h-screen py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-h1 text-on-surface mb-6 text-center">Daftar Antrean Pre-Order</h2>
+        
+        <div class="bg-surface shadow-sm border border-outline-variant rounded-2xl overflow-hidden">
+            <table class="w-full text-left text-body-md">
+                <thead class="bg-surface-variant text-on-surface-variant uppercase text-label-sm">
+                    <tr>
+                        <th class="px-6 py-4">Status Pesanan</th>
+                        <th class="px-6 py-4 text-center">Nama Pelanggan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/30">
+                    {% for order in orders %}
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-6 py-4 font-medium text-primary">
+                            {{ order.items.first.product.nama }}
+                        </td>
+                        <td class="px-6 py-4 text-center font-medium text-on-surface">
+                            {{ order.masked_name }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="px-6 py-10 text-center text-on-surface-variant">Belum ada antrean saat ini.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

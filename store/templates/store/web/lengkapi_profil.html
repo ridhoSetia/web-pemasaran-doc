@@ -1,0 +1,53 @@
+{% extends 'store/web/base_web.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-surface-container-lowest py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-xl w-full space-y-8 bg-surface p-8 sm:p-10 rounded-3xl shadow-xl border border-outline-variant/30 relative overflow-hidden">
+        
+        <div class="flex justify-center mb-4">
+            <div class="bg-secondary/10 text-secondary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">how_to_reg</span> Langkah Terakhir
+            </div>
+        </div>
+
+        <div class="text-center relative z-10">
+            <h2 class="text-2xl font-extrabold text-on-surface tracking-tight">Lengkapi Identitas Anda</h2>
+            <p class="mt-2 text-sm text-on-surface-variant leading-relaxed">
+                Sebelum memesan atau melihat antrean, kami perlu mengetahui nama dan alamat pengiriman Anda. Data ini akan disimpan untuk mempermudah pesanan berikutnya.
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-error/10 text-error border border-error/20{% else %}bg-primary/10 text-primary border border-primary/20{% endif %} flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">error</span>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form class="mt-8 space-y-6 relative z-10" method="POST" action="{% url 'store:lengkapi_profil' %}">
+            {% csrf_token %}
+            <div class="space-y-5">
+                <div>
+                    <label for="nama_lengkap" class="block text-sm font-bold text-on-surface mb-1.5">Nama Lengkap <span class="text-error">*</span></label>
+                    <input id="nama_lengkap" name="nama_lengkap" type="text" required class="appearance-none block w-full px-4 py-3.5 border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all sm:text-sm bg-surface-container-lowest" placeholder="Masukkan nama lengkap Anda">
+                    <p class="text-[11px] text-on-surface-variant mt-1.5">*Nama Anda akan disensor secara otomatis (Contoh: R***o) di halaman antrean publik.</p>
+                </div>
+
+                <div>
+                    <label for="alamat_lengkap" class="block text-sm font-bold text-on-surface mb-1.5">Alamat Pengiriman (Default) <span class="text-error">*</span></label>
+                    <textarea id="alamat_lengkap" name="alamat_lengkap" rows="3" required class="appearance-none block w-full px-4 py-3.5 border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all sm:text-sm bg-surface-container-lowest" placeholder="Masukkan alamat lengkap, nama jalan, dan patokan rumah"></textarea>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-md hover:shadow-lg transition-all active:scale-[0.98]">
+                    Simpan & Lanjutkan ke Dashboard
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
